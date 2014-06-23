@@ -14,12 +14,16 @@ To build you need the following build dependencies:
 - Intel TBB (to be removed)
 - OpenCV: http://opencv.org/
 
-Configuration is done via cmake, *outside* the main source tree, e.g.
+Configuration is done via cmake, *outside* the main source tree:
+
 Assuming source is checked out under ~/video_segment
 
 mkdir -p bin/seg_tree_sample
+
 cd bin/seg_tree_sample
+
 cmake ~/video_segment/seg_tree_sample
+
 make -j4
 
 This would build the binary seg_tree_sample in bin/seg_tree_sample/seg_tree_sample.
@@ -32,9 +36,14 @@ List of current executables:
 - video_example: Example to run video_framework single threaded or as pipeline
 
 Algorithm with many improvements is loosely based on
+
 Matthias Grundmann and Vivek Kwatra and Mei Han and Irfan Essa
+
 Efficient Hierarchical Graph Based Video Segmentation
+
 IEEE CVPR, 2010
+
+http://www.cc.gatech.edu/cpl/projects/videosegmentation/
 
 
 List of contributors over time:
