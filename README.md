@@ -34,6 +34,9 @@ List of current executables:
 - segment_viewer: Interactive viewer
 - video_example: Example to run video_framework single threaded or as pipeline
 
+
+---
+
 Algorithm with many improvements is loosely based on
 
 Matthias Grundmann and Vivek Kwatra and Mei Han and Irfan Essa
@@ -44,6 +47,7 @@ IEEE CVPR, 2010
 
 http://www.cc.gatech.edu/cpl/projects/videosegmentation/
 
+---
 
 List of contributors over time:
 - Matthias Grundmann
