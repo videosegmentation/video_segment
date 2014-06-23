@@ -1,0 +1,189 @@
+// Copyright (c) 2010-2014, The Video Segmentation Project
+// All rights reserved.
+
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//     * Redistributions of source code must retain the above copyright
+//       notice, this list of conditions and the following disclaimer.
+//     * Redistributions in binary form must reproduce the above copyright
+//       notice, this list of conditions and the following disclaimer in the
+//       documentation and/or other materials provided with the distribution.
+//     * Neither the name of the The Video Segmentation Project nor the
+//       names of its contributors may be used to endorse or promote products
+//       derived from this software without specific prior written permission.
+
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+//
+// ---
+
+package segmentation;
+
+// Generic RegionFeatures. Add specific feature descriptors via extensions.
+message RegionFeatures {
+  required fixed32 id = 1;       // corresponding region id.
+  extensions 10 to 200;
+}
+
+// Each spatio-temporal region is represented as a set of 2D frame-slices (Region2D),
+// associated by a unique id that is given to each region. Therefore, there
+// exists one SegmentationDesc for each frame in the original video.
+// 2D Regions are saved similar to polygon rasterization or RLE, as set of
+// scanlines and the corresponding scanline intervals.
+// As the hierarchy of regions (super-regions, i.e. regions composed of regions)
+// is computed for the whole video volume, it would be redundant to store it at
+// every frame, it is therefore only saved for the very first frame, for all
+// subsequent SegmentationDesc::hierarchy is empty.
+
+// Note, all Region2D's ids, Region3D's ids, neighbor ids and children
+// ids are ALWAYS sorted for fast access, when returned by any part of the algorithm.
+// If you modify the tree structure by yourself, make sure that this property is
+// retained.
+
+// SegmentationDescription
+message SegmentationDesc {
+  message Rasterization {
+    // Always lexicographically ordered by (y, x).
+    message ScanInterval {
+      required int32 y = 1;
+      required int32 left_x = 2;
+      required int32 right_x = 3;
+    }
+
+    // In case of holes, this can be empty!
+    repeated ScanInterval scan_inter = 1;
+  }
+
+  message ShapeMoments {
+    optional float size = 1;
+    optional float mean_x = 2;
+    optional float mean_y = 3;
+    optional float moment_xx = 4;
+    optional float moment_xy = 5;
+    optional float moment_yy = 6;
+  }
+
+  message VectorMesh {
+    // Packs x,y coordinates, i.e. point N is saved at positions 2*N and 2*N+1
+    repeated float coord = 1 [packed = true];
+  }
+
+  message Polygon {
+    // Maps to index in VectorMesh, i.e. x coordinate of N'th point is storred
+    // at coord_idx[N] and y coordinate at coord_idx[N] + 1.
+    repeated int32 coord_idx = 1 [packed = true];
+    optional bool hole = 2 [default = false];
+  }
+
+  message Vectorization {
+    repeated Polygon polygon = 1;
+  }
+
+  message Region2D {
+    required int32 id = 1;
+    optional Rasterization raster = 3;
+    optional ShapeMoments shape_moments = 5;
+    optional Vectorization vectorization = 6;
+  }
+
+  message CompoundRegion {
+    required int32 id = 1;
+    required int32 size = 2;
+    repeated int32 neighbor_id = 3;
+    optional int32 parent_id = 4 [default = -1];
+
+    // List of child ids - references to previous level.
+    // Empty for leafs (oversegmentation).
+    repeated int32 child_id = 5;
+
+    // Begin and end in time of this Region3D.
+    optional int32 start_frame = 6;
+    optional int32 end_frame = 7;
+
+    // Note: If new fields are added, extend MergeCompoundRegion in segmentation_util.cpp
+  }
+
+  // Represents the compound region's (hierarchy) for a whole chunk of video (usually
+  // only for the very first frame of a chunk).
+  // Note: Local w.r.t. the chunk, not global for the video.
+  // Use: BuildGlobalHierarchy (from segment_util.h) to combine multiple HierarchyLevel's
+  // into one global one.
+  message HierarchyLevel {
+    repeated CompoundRegion region = 2;
+  }
+
+  // Specifies the connectedness of the underlying 2D frame segmentation.
+  enum Connectedness {
+    N4_CONNECT = 1;
+    N8_CONNECT = 2;
+  };
+
+  // Stores the per-frame over-segmentation.
+  repeated Region2D region = 2;
+
+  // Always present at the first frame of a chunk-set.
+  repeated HierarchyLevel hierarchy = 3;
+
+  // General video information.
+  optional int32 frame_width = 4 [default = 0];
+  optional int32 frame_height = 5 [default = 0];
+
+  // Number of frames in this chunk, i.e. number of frames
+  // hierarchy was computed for.
+  optional int32 chunk_size = 6;
+
+  // First frame in overlap. Although we compute hierarchy for
+  // the whole chunk, the Region2D for the overlap
+  // are not output by this but by the next chunk.
+  optional int32 overlap_start = 7;
+
+  // Unique id per chunk.
+  optional int32 chunk_id = 8 [default = -1];
+
+  // Corresponding hierarchy frame, first one by default, i.e. denotes the frame index
+  // where the hierarchy for this chunk is stored. Indexed w.r.t. the beginning of the
+  // video, not the beginning of the chunk.
+  optional int32 hierarchy_frame_idx = 9 [default = 0];
+
+  // This might be only present in some protobuffers as it is saved for spatio
+  // temporal descriptors.
+  repeated RegionFeatures features = 10;
+
+  // Stores mesh coordinates for the whole frame.
+  optional VectorMesh vector_mesh = 11;
+
+  // Spatial connectedness of oversegmentation.
+  optional Connectedness connectedness = 12 [default = N4_CONNECT];
+   
+  // Indicates if rasterization was removed. In this case vector_mesh
+  // is always present.
+  optional bool rasterization_removed = 13 [default = false];
+}
+
+// Features for oversegmented regions.
+message AppearanceFeature {
+  extend RegionFeatures {
+    optional AppearanceFeature appearance = 10;
+  }
+}
+
+message FlowFeature {
+  extend RegionFeatures {
+    optional FlowFeature flow = 11;
+  }
+}
+
+message TextureFeature {
+  extend RegionFeatures {
+    optional TextureFeature texture = 12;
+  }
+}
