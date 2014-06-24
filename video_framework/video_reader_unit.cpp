@@ -44,12 +44,6 @@ extern "C" {
 }
 #endif
 
-// Check if we're dealing with libavcodec 52 or 53 (this is no longer defined in 53).
-#ifndef CODEC_TYPE_VIDEO 
-#define NEW_FFMPEG       // We are dealing with libavcodec53
-#define CODEC_TYPE_VIDEO AVMEDIA_TYPE_VIDEO
-#endif
-
 DEFINE_int32(trim_to, 0, "If set > 0, processing stops after trim_to frames have been "
                          "processed.");
 
@@ -109,7 +103,7 @@ bool VideoReaderUnit::OpenStreams(StreamSet* set) {
   video_stream_idx_ = -1;
 
   for (uint i = 0; i < format_context->nb_streams; ++i) {
-    if (format_context->streams[i]->codec->codec_type == CODEC_TYPE_VIDEO) {
+    if (format_context->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
       video_stream_idx_ = i;
       break;
     }
@@ -324,7 +318,6 @@ bool VideoReaderUnit::PostProcess(list<FrameSetPtr>* append) {
 VideoFrame* VideoReaderUnit::ReadNextFrame() {
   // Read frame by frame.
   AVPacket packet;
-  bool frame_processed = false;
 
   if (options_.trim_frames > 0 && frame_num_ == options_.trim_frames) {
     return nullptr;
@@ -336,55 +329,37 @@ VideoFrame* VideoReaderUnit::ReadNextFrame() {
     next_packet_.reset();
   } else {
     // No packages left?
-    if (av_read_frame(format_context_, &packet) < 0)
+    if (av_read_frame(format_context_, &packet) < 0) {
+      // Test if some are queued up in internal buffers.
+      packet.data = nullptr;
+      packet.size = 0;
+      int frame_finished = 0;
+      avcodec_decode_video2(codec_context_,
+                            frame_yuv_,
+                            &frame_finished,
+                            &packet);
+      if (frame_finished) {
+        // More frames to decode.
+        VideoFrame* next_frame = ReadNextFrameImpl(packet);
+        av_free_packet(&packet);
+        return next_frame;
+      }
+
       return nullptr;
+    }
   }
 
   do {
     if (packet.stream_index == video_stream_idx_) {
       int frame_finished;
-#ifndef NEW_FFMPEG // Makes this compile for libavcodec53
-      avcodec_decode_video(codec_context_,
-                           frame_yuv_,
-                           &frame_finished,
-                           packet.data,
-                           packet.size);
-
-#else
-      avcodec_decode_video2(codec_context_,
-                           frame_yuv_,
-                           &frame_finished,
-                           &packet);
-#endif
+      int len = avcodec_decode_video2(codec_context_,
+                                      frame_yuv_,
+                                      &frame_finished,
+                                      &packet);
       if (frame_finished) {
-        // Convert to BGR.
-        sws_scale(sws_context_, frame_yuv_->data, frame_yuv_->linesize, 0,
-                  frame_height_, frame_bgr_->data, frame_bgr_->linesize);
-
-        AVRational target_timebase = {1, 1000000};  // micros.
-        int64_t pts =
-          av_rescale_q(packet.pts, target_timebase,
-                       format_context_->streams[video_stream_idx_]->time_base);
-        current_pos_ = pts;
-        VideoFrame* cur_frame = new VideoFrame(output_width_,
-                                               output_height_,
-                                               bytes_per_pixel_,
-                                               output_width_step_,
-                                               pts);
-
-        const uint8_t* src_data = frame_bgr_->data[0];
-        uint8_t* dst_data = cur_frame->mutable_data();
-
-        // Copy to our image.
-        for (int i = 0;
-             i < output_height_;
-             ++i, src_data += frame_bgr_->linesize[0], dst_data += output_width_step_) {
-          memcpy(dst_data, src_data, bytes_per_pixel_ * output_width_);
-        }
-
-        frame_processed = true;
+        VideoFrame* next_frame = ReadNextFrameImpl(packet);
         av_free_packet(&packet);
-        return cur_frame;
+        return next_frame;
       }
     }
     av_free_packet(&packet);
@@ -392,6 +367,35 @@ VideoFrame* VideoReaderUnit::ReadNextFrame() {
                                                           // of multiple packages.
   LOG(ERROR) << "Unexpected end of ReadNextFrame()";
   return nullptr;
+}
+
+VideoFrame* VideoReaderUnit::ReadNextFrameImpl(const AVPacket& packet) {
+  // Convert to requested format.
+  sws_scale(sws_context_, frame_yuv_->data, frame_yuv_->linesize, 0,
+            frame_height_, frame_bgr_->data, frame_bgr_->linesize);
+
+  AVRational target_timebase = {1, 1000000};  // micros.
+  int64_t pts =
+    av_rescale_q(packet.pts, target_timebase,
+                 format_context_->streams[video_stream_idx_]->time_base);
+  current_pos_ = pts;
+  VideoFrame* curr_frame = new VideoFrame(output_width_,
+                                          output_height_,
+                                          bytes_per_pixel_,
+                                          output_width_step_,
+                                          pts);
+
+  const uint8_t* src_data = frame_bgr_->data[0];
+  uint8_t* dst_data = curr_frame->mutable_data();
+
+  // Copy to our image.
+  for (int i = 0;
+       i < output_height_;
+       ++i, src_data += frame_bgr_->linesize[0], dst_data += output_width_step_) {
+    memcpy(dst_data, src_data, bytes_per_pixel_ * output_width_);
+  }
+
+  return curr_frame;
 }
 
 bool VideoReaderUnit::SeekImpl(int64_t time) {   // in micros.
@@ -413,11 +417,7 @@ bool VideoReaderUnit::SeekImpl(int64_t time) {   // in micros.
   avcodec_flush_buffers(codec_context_);
 
   next_packet_.reset(new AVPacket);
-#ifndef NEW_FFMPEG
-  codec_context_->hurry_up = 1;
-#else
   codec_context_->skip_frame = AVDISCARD_NONKEY;
-#endif
   int runs = 0;
   while (runs++ < 1000) {     // Correct frame should not be more than 1000 frames away.
     if (av_read_frame(format_context_, next_packet_.get()) < 0)
@@ -433,20 +433,11 @@ bool VideoReaderUnit::SeekImpl(int64_t time) {   // in micros.
     }
 
     int frame_finished;
-#ifndef NEW_FFMPEG
-    avcodec_decode_video(codec_context_, frame_yuv_, &frame_finished,
-                          next_packet_->data, next_packet_->size);
-#else
     avcodec_decode_video2(codec_context_, frame_yuv_, &frame_finished,
                           next_packet_.get());
-#endif
     av_free_packet(next_packet_.get());
   }
-#ifndef NEW_FFMPEG
-  codec_context_->hurry_up = 0;
-#else
   codec_context_->skip_frame =  AVDISCARD_DEFAULT;
-#endif
 
   return true;
 }

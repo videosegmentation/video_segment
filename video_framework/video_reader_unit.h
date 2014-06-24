@@ -82,6 +82,8 @@ class VideoReaderUnit : public VideoUnit {
   // Returns allocated VideoFrame (ownership passed to caller).
   // Returns NULL if end of file is reached.
   VideoFrame* ReadNextFrame();
+  // Used by above function is a frame could be decoded to get the actual VideoFrame.
+  VideoFrame* ReadNextFrameImpl(const AVPacket& packet);
 
  private:
   VideoReaderOptions options_;
@@ -112,10 +114,10 @@ class VideoReaderUnit : public VideoUnit {
   // If next_packet_ is set, it is read instead of decode being called.
   std::unique_ptr<AVPacket> next_packet_;
 
-  uint64_t current_pos_;
+  uint64_t current_pos_ = 0;
   double fps_;
 
-  bool used_as_root_;
+  bool used_as_root_ = true;
   static bool ffmpeg_initialized_;
 };
 
