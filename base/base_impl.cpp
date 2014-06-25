@@ -32,6 +32,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+namespace base {
+
 std::string StringPrintf(const char* format, ...) {
   static constexpr int kBufferLength = 128;
   char buffer[kBufferLength];
@@ -57,3 +59,5 @@ bool FileExists(const std::string& file) {
   struct stat unused;
   return stat(file.c_str(), &unused) == 0;
 }
+
+}  // namespace base.`<F4><F4>

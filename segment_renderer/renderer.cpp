@@ -295,9 +295,9 @@ int main(int argc, char** argv) {
     }
 
     if (image_output) {
-      std::string output_file = StringPrintf("%s/frame%05d.png",
-                                             FLAGS_output_image_dir.c_str(),
-                                             f);
+      std::string output_file = base::StringPrintf("%s/frame%05d.png",
+                                                   FLAGS_output_image_dir.c_str(),
+                                                   f);
       cv::imwrite(output_file, frame_view);                                       
     }
 

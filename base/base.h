@@ -53,6 +53,8 @@
 
 #include <glog/logging.h>
 
+namespace base {
+
 std::string demangle(const char* name);
 
 // Common base class to enable checked casting to derived class for types
@@ -113,5 +115,7 @@ class TypedType {
   // Specifies actual type.
   const std::type_info* type_;
 };
+
+}  // namespace base.
 
 #endif   // VIDEO_SEGMENT_BASE_BASE_H__

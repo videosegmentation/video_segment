@@ -75,9 +75,10 @@ typedef std::vector<std::unique_ptr<RegionInformation>> RegionInfoList;
 class Segmentation;
 
 // Abstract base class for a descriptor. Implement for each descriptor.
-class RegionDescriptor : public TypedType {
+class RegionDescriptor : public base::TypedType {
  public:
-  RegionDescriptor(const std::type_info* type) : TypedType(type), parent_region_(0) { }
+  RegionDescriptor(const std::type_info* type)
+      : base::TypedType(type), parent_region_(0) { }
   RegionDescriptor(const RegionDescriptor&) = default;
 
   virtual ~RegionDescriptor() = 0;
@@ -129,9 +130,9 @@ class RegionDescriptor : public TypedType {
 };
 
 // Generic base class to start the extraction process.
-class RegionDescriptorExtractor : public TypedType {
+class RegionDescriptorExtractor : public base::TypedType {
  public:
-  RegionDescriptorExtractor(const std::type_info* type) : TypedType(type) { }
+  RegionDescriptorExtractor(const std::type_info* type) : base::TypedType(type) { }
   RegionDescriptorExtractor(const RegionDescriptorExtractor&) = default;
   virtual ~RegionDescriptorExtractor() = 0;
 
@@ -143,9 +144,9 @@ class RegionDescriptorExtractor : public TypedType {
 typedef std::vector<std::shared_ptr<RegionDescriptorExtractor>> DescriptorExtractorList;
 
 // Updater for region descriptors.
-class RegionDescriptorUpdater : public TypedType {
+class RegionDescriptorUpdater : public base::TypedType {
  public:
-  RegionDescriptorUpdater(const std::type_info* type) : TypedType(type) { }
+  RegionDescriptorUpdater(const std::type_info* type) : base::TypedType(type) { }
   virtual ~RegionDescriptorUpdater() {}
 
   // Called after every hierarchical stage completes with segmentation result.

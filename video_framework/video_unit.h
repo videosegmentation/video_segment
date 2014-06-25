@@ -56,9 +56,9 @@ int PixelFormatToNumChannels(VideoPixelFormat);
 
 // Base class for different Frame's. Can not be instantiated directly.
 // Supports checked casting from Frame to derived Frame's via As[Ptr|Ref]<Type>.
-class Frame : public TypedType {
+class Frame : public base::TypedType {
  protected:
-  Frame(const std::type_info* type, int64_t pts = 0) : TypedType(type), pts_(pts) {
+  Frame(const std::type_info* type, int64_t pts = 0) : base::TypedType(type), pts_(pts) {
   }
 
  public:
@@ -195,10 +195,10 @@ private:
 // TODO(dcastro): LOWPRI: Implement an audio frame.
 
 // Basic Stream class.
-class DataStream : public TypedType {
+class DataStream : public base::TypedType {
 public:
   DataStream(const std::string& stream_name)
-    : TypedType(&typeid(*this)), stream_name_(stream_name) {
+    : base::TypedType(&typeid(*this)), stream_name_(stream_name) {
   }
 
   virtual std::string stream_name() { return stream_name_; }
@@ -217,7 +217,7 @@ public:
  protected:
   // For use by derived classes.
   DataStream(const std::type_info* type, const std::string& stream_name)
-      : TypedType(type), stream_name_(stream_name) {
+      : base::TypedType(type), stream_name_(stream_name) {
   }
 
  protected:
@@ -460,7 +460,7 @@ public:
   // Returns maximum of queue sizes across the tree.
   int MaxTreeQueueSize() const;
 
-  void PrintTree() { PrintTreeImpl(0); }
+  void PrintTree() const;
 
 protected:
   // Generate's a new frame and outputs to output. Return's false if no more frames
@@ -490,7 +490,7 @@ protected:
   virtual bool PostProcessingPassToChildren() { return true; }
 
   // Recursive tree printing function
-  virtual void PrintTreeImpl(int indent);
+  virtual std::string PrintTreeImpl(int indent) const;
 
 private:
   std::vector<VideoUnit*> children_;

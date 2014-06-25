@@ -635,14 +635,14 @@ void SegmentationRenderUnit::ProcessFrame(FrameSetPtr input,
 
   if (desc.chunk_id() != prev_chunk_id_) {
     prev_chunk_id_ = desc.chunk_id();
-    string output_text = StringPrintf("Change to chunk id %d", desc.chunk_id());
+    string output_text = base::StringPrintf("Change to chunk id %d", desc.chunk_id());
 
     cv::putText(render_view, output_text, cv::Point(5, frame_height_ - 30),
                 cv::FONT_HERSHEY_PLAIN, 0.8,
                 cv::Scalar(255, 255, 255));
   }
 
-  std::string output_text = StringPrintf("Frame #%04d", frame_number_);
+  std::string output_text = base::StringPrintf("Frame #%04d", frame_number_);
 
   cv::putText(render_view, output_text, cv::Point(5, frame_height_ - 10),
               cv::FONT_HERSHEY_PLAIN, 0.8,

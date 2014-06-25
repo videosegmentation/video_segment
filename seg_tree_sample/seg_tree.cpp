@@ -281,7 +281,7 @@ int main(int argc, char** argv) {
       seg::SegmentationRenderUnitOptions render_options;
       render_options.blend_alpha = 0.9;
       render_options.hierarchy_level = level;
-      render_options.out_stream_name = StringPrintf("RenderStream%d", idx);
+      render_options.out_stream_name = base::StringPrintf("RenderStream%d", idx);
       out_render.emplace_back(new seg::SegmentationRenderUnit(render_options));
       out_render.back()->AttachTo(input);
 
@@ -289,8 +289,8 @@ int main(int argc, char** argv) {
       writer_options.stream_name = render_options.out_stream_name;
       writer_options.bit_rate = 40000000;
       writer_options.fraction = 16;
-      std::string out_file = StringPrintf("%s_render_%0.2f.mp4",
-                                          FLAGS_input_file.c_str(), level);
+      std::string out_file = base::StringPrintf("%s_render_%0.2f.mp4",
+                                                FLAGS_input_file.c_str(), level);
       out_writer.emplace_back(new vf::VideoWriterUnit(writer_options, out_file));
       out_writer.back()->AttachTo(out_render.back().get());
 

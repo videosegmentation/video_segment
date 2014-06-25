@@ -28,6 +28,8 @@
 
 #include "base/base.h"
 
+namespace base {
+
 #ifdef __GNUG__
 // From: http://stackoverflow.com/questions/281818/unmangling-the-result-of-stdtype-infoname
 std::string demangle(const char* name) {
@@ -46,3 +48,5 @@ std::string demangle(const char* name) {
 }
 
 #endif  // __GNUG__
+
+}  // namespace base.

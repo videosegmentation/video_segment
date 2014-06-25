@@ -49,10 +49,14 @@ using std::unordered_set;
 #include <functional>
 using std::hash;
 
+namespace base {
+
 // Like snprintf but for strings.
 std::string StringPrintf(const char* format, ...);
 
 // Returns true, if file exists.
 bool FileExists(const std::string& file);
+
+}  // namespace base.
 
 #endif   // VIDEO_SEGMENT_BASE_BASE_IMPL_H__

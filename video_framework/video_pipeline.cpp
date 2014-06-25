@@ -230,7 +230,7 @@ void VideoPipelineStats::ProcessFrame(FrameSetPtr input, list<FrameSetPtr>* outp
     // Value text.
     cv::Point txt_pt(col - spacing / 3, options_.frame_height - border / 3 - 10);
     cv::putText(image,
-                StringPrintf("%02d", val),
+                base::StringPrintf("%02d", val),
                 txt_pt,
                 cv::FONT_HERSHEY_SIMPLEX,
                 0.5,
@@ -250,7 +250,7 @@ void VideoPipelineStats::ProcessFrame(FrameSetPtr input, list<FrameSetPtr>* outp
     // Fps text.
     txt_pt.y = border / 3;
     cv::putText(image,
-                StringPrintf("%3.1f", sinks_[i].first->MinTreeRate()),
+                base::StringPrintf("%3.1f", sinks_[i].first->MinTreeRate()),
                 txt_pt,
                 cv::FONT_HERSHEY_SIMPLEX,
                 0.4,
@@ -264,7 +264,7 @@ void VideoPipelineStats::ProcessFrame(FrameSetPtr input, list<FrameSetPtr>* outp
   float secs_passed = boost::posix_time::time_period(
       start_time_, curr_time).length().total_milliseconds() * 1.e-3f;
   cv::putText(image,
-              StringPrintf("up: %5.1f", secs_passed),
+              base::StringPrintf("up: %5.1f", secs_passed),
               cv::Point(options_.frame_width - 75, border / 3),
               cv::FONT_HERSHEY_SIMPLEX,
               0.4,

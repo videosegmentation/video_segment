@@ -162,11 +162,11 @@ int main(int argc, char** argv) {
 
     std::string curr_file = FLAGS_output_dir + "/";
     if (mode == CONV_TEXT) {
-      curr_file += StringPrintf("frame%05d.pbtxt", f);
+      curr_file += base::StringPrintf("frame%05d.pbtxt", f);
     } else if (mode == CONV_BINARY) {
-      curr_file += StringPrintf("frame%05d.pb", f);
+      curr_file += base::StringPrintf("frame%05d.pb", f);
     } else {
-      curr_file += StringPrintf("frame%05d.png", f);
+      curr_file += base::StringPrintf("frame%05d.png", f);
     }
 
     if (f % 5 == 0) {

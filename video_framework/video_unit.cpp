@@ -293,7 +293,7 @@ float VideoUnit::UnitRate() const {
   if (unit_period > 0) {
     return 1.0f / unit_period;
   } else {
-    return 1e6f;
+    return 1e4f;
   }
 }
 
@@ -482,12 +482,16 @@ void VideoUnit::PostProcessImpl(const VideoUnit* sender) {
   }
 }
 
+void VideoUnit::PrintTree() const {
+  LOG(INFO) << "Tree layout:\n" << PrintTreeImpl(0);
+}
 
-void VideoUnit::PrintTreeImpl(int indent) {
-  std::cout << StringPrintf("%*s" "%s", indent, " ",
-                            demangle(typeid(*this).name()).c_str()) << "\n";
+std::string VideoUnit::PrintTreeImpl(int indent) const {
+  std::string result =
+    base::StringPrintf("%*s" "%s\n", indent, " ",
+                       base::demangle(typeid(*this).name()).c_str());
   for (auto& child_ptr : children_) {
-    child_ptr->PrintTreeImpl(indent + 2);
+    result += child_ptr->PrintTreeImpl(indent + 2);
   }
 }
 

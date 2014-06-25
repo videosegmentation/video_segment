@@ -38,13 +38,13 @@ namespace segmentation {
 typedef SegmentationDesc::Rasterization Rasterization;
 
 std::string Boundary::Segment::ToString() const {
-  std::string res = StringPrintf("Segment with %d points:\n", points.size());
-  res += StringPrintf("Start: %d, %d\n", start.pt.x, start.pt.y);
-  res += StringPrintf("End: %d, %d\n", end.pt.x, end.pt.y);
-  res += StringPrintf("Left: %d, Right: %d\n", left_region, right_region);
+  std::string res = base::StringPrintf("Segment with %d points:\n", points.size());
+  res += base::StringPrintf("Start: %d, %d\n", start.pt.x, start.pt.y);
+  res += base::StringPrintf("End: %d, %d\n", end.pt.x, end.pt.y);
+  res += base::StringPrintf("Left: %d, Right: %d\n", left_region, right_region);
 
   for (const auto& pt : points) {
-    res += StringPrintf("> %d, %d\n", pt.x, pt.y);
+    res += base::StringPrintf("> %d, %d\n", pt.x, pt.y);
   }
   return res;
 }
@@ -497,9 +497,9 @@ bool BoundaryComputation::IsFrameRectangleSegment(
 namespace {
 
 string PointVectorString(const std::vector<cv::Point2i>& pt) {
-  string result = StringPrintf("vec with %d points\n", pt.size());
+  string result = base::StringPrintf("vec with %d points\n", pt.size());
   for (const auto& p : pt) {
-    result += StringPrintf("> %d, %d \n", p.x, p.y);
+    result += base::StringPrintf("> %d, %d \n", p.x, p.y);
   }
   return result;
 }
@@ -647,8 +647,8 @@ BoundarySegmentKey::BoundarySegmentKey(const Boundary::Segment& segment) {
 
 
 std::string BoundarySegmentKey::ToString() const {
-  return StringPrintf("pt_1: %d, %d, pt_2: %d, %d, reg_1: %d, reg_2: %d",
-                      pt_1.x, pt_1.y, pt_2.x, pt_2.y, region_1, region_2);
+  return base::StringPrintf("pt_1: %d, %d, pt_2: %d, %d, reg_1: %d, reg_2: %d",
+                            pt_1.x, pt_1.y, pt_2.x, pt_2.y, region_1, region_2);
 }
 
 }  // namespace segmentation.
