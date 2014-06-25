@@ -152,20 +152,21 @@ int main(int argc, char** argv) {
     if (segmentation.hierarchy_size() > 0) {
       hierarchy.Clear();
       hierarchy.MergeFrom(segmentation.hierarchy());
+      // Convert fractional to constant absolute level.
       if (absolute_level < 0) {
         absolute_level = hier_level * (float)hierarchy.size();
-        std::cout << "Selecting level " << absolute_level << " of " << hierarchy.size()
+        LOG(INFO) << "Selecting level " << absolute_level << " of " << hierarchy.size()
                   << std::endl;
       }
     }
 
     std::string curr_file = FLAGS_output_dir + "/";
     if (mode == CONV_TEXT) {
-      curr_file += StringPrintf("frame%04d.pbtxt", f);
+      curr_file += StringPrintf("frame%05d.pbtxt", f);
     } else if (mode == CONV_BINARY) {
-      curr_file += StringPrintf("frame%04d.pb", f);
+      curr_file += StringPrintf("frame%05d.pb", f);
     } else {
-      curr_file += StringPrintf("frame%04d.png", f);
+      curr_file += StringPrintf("frame%05d.png", f);
     }
 
     if (f % 5 == 0) {

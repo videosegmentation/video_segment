@@ -52,7 +52,7 @@ HierarchyColorGenerator::HierarchyColorGenerator(int hierarchy_level,
 
 bool HierarchyColorGenerator::operator()(int overseg_region_id,
                                          RegionID* mapped_id,
-                                         uchar* colors) const {
+                                         uint8_t* colors) const {
   CHECK_NOTNULL(mapped_id);
   CHECK_NOTNULL(colors);
   int region_id = overseg_region_id;
@@ -65,7 +65,7 @@ bool HierarchyColorGenerator::operator()(int overseg_region_id,
 
   srand(region_id);
   for (int c = 0; c < channels_; ++c) {
-    colors[c] = (uchar) (rand() % 255);
+    colors[c] = (uint8_t) (rand() % 255);
   }
 
   return true;

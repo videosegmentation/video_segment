@@ -1133,8 +1133,8 @@ void RasterVectorization(const Vectorization& vec,
 }
 
 void ReplaceRasterizationFromVectorization(SegmentationDesc* desc) {
+  DCHECK(desc->has_vector_mesh());
   for (auto& region : *desc->mutable_region()) {
-    DCHECK(region.has_raster());
     RasterVectorization(region.vectorization(),
                         desc->vector_mesh(),
                         desc->frame_height(),

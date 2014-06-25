@@ -83,10 +83,11 @@ class HierarchyColorGenerator {
   // Id is mapped to corresponding parent id at the desired hierarchy level
   // and this id is used as color seed to random generate colors.
   // Mapped id needs also to be returned (for draw shape descriptors, etc.)
+  // Outut colors are assumed to be 3 channel RGB.
   // If false is returned, region is not rendered.
   bool operator()(int overseg_region_id,
                   RegionID* mapped_id,
-                  unsigned char* colors) const;
+                  uint8_t* colors) const;
 
 protected:
   const Hierarchy* hierarchy_;

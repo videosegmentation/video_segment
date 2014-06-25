@@ -56,10 +56,6 @@ if (APPLE)
   set(CMAKE_HOST_SYSTEM_PROCESSOR "x86_64")
 endif (APPLE)
 
-# Profiling
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lprofiler -L/opt/local/lib")
-
 # Checks for each cpp file if header exists and adds it to HEADERS
 function(headers_from_sources_cpp HEADERS SOURCES)
 set(HEADERS)

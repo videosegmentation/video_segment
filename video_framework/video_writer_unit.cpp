@@ -147,12 +147,16 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
 
   codec_context_->codec_type = CODEC_TYPE_VIDEO;
   codec_context_->bit_rate = options_.bit_rate;
-  codec_context_->bit_rate_tolerance = options_.bit_rate;
+  codec_context_->bit_rate_tolerance = options_.bit_rate / 5;
   codec_context_->width = output_width_;
   codec_context_->height = output_height_;
 
   LOG(INFO) << "Encoding with " << options_.fps << " fps.";
   codec_context_->time_base = av_d2q(1.0 / options_.fps, 1000);
+  
+  LOG(INFO) << "time base : " << codec_context_->time_base.num
+            << " / " << codec_context_->time_base.den;
+
   codec_context_->pix_fmt = PIX_FMT_YUV420P;
 
   if (codec_context_->codec_id == CODEC_ID_MPEG2VIDEO) {

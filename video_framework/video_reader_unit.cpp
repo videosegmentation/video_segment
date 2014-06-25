@@ -200,8 +200,8 @@ bool VideoReaderUnit::OpenStreams(StreamSet* set) {
   output_width_step_ = output_width_ * bytes_per_pixel_;
 
   // Pad width_step to be a multiple of 4.
-  if (output_width_step_ % 4) {
-    output_width_step_ = output_width_step_ + (4 - output_width_step_ % 4);
+  if (output_width_step_ % 4 != 0) {
+    output_width_step_ += 4 - output_width_step_ % 4;
     DCHECK_EQ(output_width_step_ % 4, 0);
   }
 
