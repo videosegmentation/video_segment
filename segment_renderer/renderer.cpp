@@ -53,6 +53,8 @@ DEFINE_string(output_image_dir, "", "Output image directory.");
 DEFINE_string(json_file, "", "Optional Json project file.");
 DEFINE_int32(min_output_dim, 0, "If set > 0, scales minimum dimension to specified "
                                 "value.");
+DEFINE_int32(max_frames, 0, "If set > 0 stops rendering after outputting #max_frames "
+                            "frames");
 DEFINE_bool(logging, false, "If set outputs logging information");
 
 // Represents a region in project format.
@@ -247,7 +249,9 @@ int main(int argc, char** argv) {
   // Absolute render level (constant across all chunks).
   int absolute_level = -1;
 
-  for (int f = 0; f < segment_reader.NumFrames(); ++f) {
+  int max_frames = FLAGS_max_frames > 0 ? FLAGS_max_frames : segment_reader.NumFrames();
+
+  for (int f = 0; f < max_frames; ++f) {
     segment_reader.SeekToFrame(f);
 
     // Read from file.
