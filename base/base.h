@@ -116,6 +116,28 @@ class TypedType {
   const std::type_info* type_;
 };
 
+// Defines range for parallel for invocation.
+class BlockedRange {
+ public:
+  BlockedRange() = default;
+  BlockedRange(int begin, int end) : begin_(begin), end_(end) { };
+
+  int begin() const { return begin_; }
+  int end() const { return end_; }
+
+ private:
+  int begin_ = 0;
+  int end_ = 0;
+};
+
+template<class Invoker>
+void ParallelFor(const BlockedRange& range, const Invoker& invoker) {
+  #pragma omp parallel for
+  for (int i = range.begin(); i < range.end(); ++i) {
+    invoker(BlockedRange(i, i + 1));
+  }
+}
+
 }  // namespace base.
 
 #endif   // VIDEO_SEGMENT_BASE_BASE_H__
