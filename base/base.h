@@ -120,18 +120,22 @@ class TypedType {
 class BlockedRange {
  public:
   BlockedRange() = default;
-  BlockedRange(int begin, int end) : begin_(begin), end_(end) { };
+  BlockedRange(int begin, int end, int grain_size = 1) 
+    : begin_(begin), end_(end), grain_size_(grain_size) { }
 
   int begin() const { return begin_; }
   int end() const { return end_; }
+  int grain_size() const { return grain_size_; }
 
  private:
   int begin_ = 0;
   int end_ = 0;
+  int grain_size_ = 1;
 };
 
 template<class Invoker>
 void ParallelFor(const BlockedRange& range, const Invoker& invoker) {
+  // TODO(grundman): grain size should go into for loop.
   #pragma omp parallel for
   for (int i = range.begin(); i < range.end(); ++i) {
     invoker(BlockedRange(i, i + 1));

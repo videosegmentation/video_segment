@@ -33,8 +33,8 @@
 #include "base/base.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include "video_framework/concurrent_queue.h"
 #include "video_framework/video_unit.h"
-#include "tbb/concurrent_queue.h"
 
 namespace boost {
   class thread;
@@ -79,7 +79,7 @@ private:
 
 private:
   bool source_exhausted_;
-  tbb::concurrent_queue<FrameSetPtr> frameset_queue_;
+  concurrent_queue<FrameSetPtr> frameset_queue_;
 
   int frame_number_;
 

@@ -31,7 +31,6 @@
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
-#include <tbb/tbb.h>
 
 #include "base/base_impl.h"
 #include "imagefilter/image_util.h"
@@ -43,15 +42,15 @@ namespace {
 // Parallel filter over image rows.
 class ParallelBilateralGray {
 public:
-ParallelBilateralGray(const cv::Mat& image,
-                      cv::Mat* output,
-                      const float sigma_space,
-                      const float sigma_color,
-                      const std::vector<float>& expLUT,
-                      const std::vector<int>& space_ofs,
-                      const std::vector<float>& space_weights,
-                      const int space_sz,
-                      const float scale)
+ ParallelBilateralGray(const cv::Mat& image,
+                       cv::Mat* output,
+                       const float sigma_space,
+                       const float sigma_color,
+                       const std::vector<float>& expLUT,
+                       const std::vector<int>& space_ofs,
+                       const std::vector<float>& space_weights,
+                       const int space_sz,
+                       const float scale)
   : image_(image),
     output_(output),
     sigma_space_(sigma_space),
@@ -63,7 +62,7 @@ ParallelBilateralGray(const cv::Mat& image,
     scale_(scale) {
 }
 
-void operator()(const tbb::blocked_range<int>& r) const {
+void operator()(const base::BlockedRange& r) const {
   for (int i = r.begin(); i != r.end(); ++i) {
     const float* src_ptr = image_.ptr<float>(i);
     float* dst_ptr = output_->ptr<float>(i);
@@ -91,31 +90,31 @@ void operator()(const tbb::blocked_range<int>& r) const {
   }
 }
 
-private:
-const cv::Mat& image_;
-cv::Mat* output_;
-const float sigma_space_;
-const float sigma_color_;
-const std::vector<float>& expLUT_;
-const std::vector<int>& space_ofs_;
-const std::vector<float>& space_weights_;
-const int space_sz_;
-const float scale_;
+ private:
+  const cv::Mat& image_;
+  cv::Mat* output_;
+  const float sigma_space_;
+  const float sigma_color_;
+  const std::vector<float>& expLUT_;
+  const std::vector<int>& space_ofs_;
+  const std::vector<float>& space_weights_;
+  const int space_sz_;
+  const float scale_;
 };
 
 // Parallel filter over image rows.
 class ParallelBilateralColor {
-public:
-ParallelBilateralColor(const cv::Mat& image,
-                       cv::Mat* output,
-                       const float sigma_space,
-                       const float sigma_color,
-                       const std::vector<float>& expLUT,
-                       const std::vector<int>& space_ofs,
-                       const std::vector<float>& space_weights,
-                       const int space_sz,
-                       const float scale,
-                       const int num_bins)
+ public:
+  ParallelBilateralColor(const cv::Mat& image,
+                         cv::Mat* output,
+                         const float sigma_space,
+                         const float sigma_color,
+                         const std::vector<float>& expLUT,
+                         const std::vector<int>& space_ofs,
+                         const std::vector<float>& space_weights,
+                         const int space_sz,
+                         const float scale,
+                         const int num_bins)
   : image_(image),
     output_(output),
     sigma_space_(sigma_space),
@@ -128,7 +127,7 @@ ParallelBilateralColor(const cv::Mat& image,
     num_bins_(num_bins) {
 }
 
-void operator()(const tbb::blocked_range<int>& r) const {
+void operator()(const base::BlockedRange& r) const {
   CHECK_EQ(3, image_.channels());
   for (int i = r.begin(); i != r.end(); ++i) {
     const float* src_ptr = image_.ptr<float>(i);
@@ -147,7 +146,8 @@ void operator()(const tbb::blocked_range<int>& r) const {
         const float diff_b = my_b - local_ptr[0];
         const float diff_g = my_g - local_ptr[1];
         const float diff_r = my_r - local_ptr[2];
-        const int idx = (int)((diff_b * diff_b + diff_g * diff_g + diff_r * diff_r) * scale_);
+        const int idx = (int)((diff_b * diff_b + diff_g * diff_g + diff_r * diff_r) *
+            scale_);
         const float weight = space_weights_[k] * expLUT_[idx];
         weight_sum += weight;
         sum_b += local_ptr[0] * weight;
@@ -166,17 +166,17 @@ void operator()(const tbb::blocked_range<int>& r) const {
   }
 }
 
-private:
-const cv::Mat& image_;
-cv::Mat* output_;
-const float sigma_space_;
-const float sigma_color_;
-const std::vector<float>& expLUT_;
-const std::vector<int>& space_ofs_;
-const std::vector<float>& space_weights_;
-const int space_sz_;
-const float scale_;
-const int num_bins_;
+ private:
+  const cv::Mat& image_;
+  cv::Mat* output_;
+  const float sigma_space_;
+  const float sigma_color_;
+  const std::vector<float>& expLUT_;
+  const std::vector<int>& space_ofs_;
+  const std::vector<float>& space_weights_;
+  const int space_sz_;
+  const float scale_;
+  const int num_bins_;
 };
 
 }  // namespace.
@@ -251,19 +251,18 @@ void BilateralFilter(const cv::Mat& image,
 
   // Bilateral filtering.
   if (image.channels() == 1) {
-     tbb::parallel_for(tbb::blocked_range<int>(0, img_height, img_height / 8),
-                       ParallelBilateralGray(tmp_image,
-                                             output,
-                                             sigma_space,
-                                             sigma_color,
-                                             expLUT,
-                                             space_ofs,
-                                             space_weights,
-                                             space_sz,
-                                             scale),
-                                             tbb::simple_partitioner());
+    base::ParallelFor(base::BlockedRange(0, img_height, img_height / 8),
+                      ParallelBilateralGray(tmp_image,
+                                            output,
+                                            sigma_space,
+                                            sigma_color,
+                                            expLUT,
+                                            space_ofs,
+                                            space_weights,
+                                            space_sz,
+                                            scale));
   } else {    // Color case.
-    tbb::parallel_for(tbb::blocked_range<int>(0, img_height, img_height / 8),
+    base::ParallelFor(base::BlockedRange(0, img_height, img_height / 8),
                       ParallelBilateralColor(tmp_image,
                                              output,
                                              sigma_space,
@@ -273,8 +272,7 @@ void BilateralFilter(const cv::Mat& image,
                                              space_weights,
                                              space_sz,
                                              scale,
-                                             num_bins),
-                                             tbb::simple_partitioner());
+                                             num_bins));
   }
 }
 

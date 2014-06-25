@@ -50,7 +50,7 @@ void VideoPipelineSink::ProcessFrame(FrameSetPtr input, list<FrameSetPtr>* outpu
 
 bool VideoPipelineSink::TryFetchingFrameSet(FrameSetPtr* ptr) {
   FrameSetPtr local_ptr;
-  const bool success = frameset_queue_.try_pop(local_ptr);
+  const bool success = frameset_queue_.try_pop(&local_ptr);
   if (success) {
     ptr->swap(local_ptr);
     return true;

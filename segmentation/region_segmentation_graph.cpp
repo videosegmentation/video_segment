@@ -30,8 +30,6 @@
 #include "base/base_impl.h"
 #include "segmentation/region_segmentation_graph.h"
 
-#include <tbb/tbb.h>
-
 namespace segmentation {
 
 RegionAgglomerationGraph::RegionAgglomerationGraph(float max_weight,
@@ -470,7 +468,7 @@ float RegionAgglomerationGraph::MergeRegions(Region* rep_1,
   vector<float> region_distances(num_neighbors, 0.f);
 
   auto evaluator_fun = [this, &region_distances, &new_info, &neighbor_infos]
-    (const tbb::blocked_range<size_t>& r) -> void {
+    (const base::BlockedRange& r) -> void {
     std::vector<float> descriptor_distances(distance_->NumDescriptors());
     for (size_t i = r.begin(); i != r.end(); ++i) {
       const RegionInformation& neighbor = *neighbor_infos[i];
@@ -483,9 +481,9 @@ float RegionAgglomerationGraph::MergeRegions(Region* rep_1,
   const int parallel_cutoff = 128;
 
   if (num_neighbors < parallel_cutoff) {
-    evaluator_fun(tbb::blocked_range<size_t>(0, num_neighbors));
+    evaluator_fun(base::BlockedRange(0, num_neighbors));
   } else {
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, num_neighbors), evaluator_fun);
+    base::ParallelFor(base::BlockedRange(0, num_neighbors), evaluator_fun);
   }
 
   // Add edges back to graph, determine minimum added edge weight.

@@ -31,15 +31,8 @@
 
 #include "base/base.h"
 
-#define USE_TBB 0  // undefine to use std::thread 
-
 #include <gflags/gflags.h>
 #include <opencv2/core/core.hpp>
-
-#ifdef USE_TBB
-#include <tbb/task_group.h>
-#include <tbb/task_scheduler_init.h>
-#endif  // USE_TBB.
 
 #include <thread>
 
@@ -270,12 +263,7 @@ protected:
   int frame_height_ = 0;
   int max_frames_ = 0;
 
-#if USE_TBB
-  tbb::task_group add_edges_tasks_;
-#else
   std::vector<std::thread> add_edges_tasks_;
-#endif
-
 };
 
 template<class DistanceTraits, class DescriptorTraits>
@@ -363,11 +351,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::AddTemporalVirtua
       ConstantPixelDistance(1e10), num_frames_, this);
 
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
@@ -382,11 +366,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
         num_frames_,
         this);
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
@@ -395,13 +375,9 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
 template<class DistanceTraits, class DescriptorTraits>
 void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::FinishBuildingGraph() {
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.wait();
-#else
     for (std::thread& thread : add_edges_tasks_) {
       thread.join();
     }
-#endif
   }
 }
 
@@ -562,11 +538,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
   AddNodesWithDescriptors(distance);
   AddSpatialEdgesInvoker invoker(distance, num_frames_, this);
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
@@ -580,11 +552,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
   AddSpatialEdgesInvoker invoker(distance, num_frames_, this);
 
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
@@ -595,11 +563,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::AddTemporalEdgesF
     const TemporalDistance& distance) {
   AddTemporalEdgesInvoker<TemporalDistance> invoker(distance, num_frames_, this);
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
@@ -612,11 +576,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
   AddTemporalFlowEdgesInvoker<TemporalDistance> invoker(
       distance, flow, num_frames_, this);
   if (FLAGS_parallel_graph_construction) {
-#if USE_TBB
-    add_edges_tasks_.run(invoker);
-#else
     add_edges_tasks_.push_back(std::thread(invoker));
-#endif
   } else {
     invoker();
   }
