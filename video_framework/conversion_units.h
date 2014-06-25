@@ -26,10 +26,10 @@
 //
 // ---
 
-#ifndef CONVERSION_UNITS_H__
-#define CONVERSION_UNITS_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_CONVERSION_UNITS_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_CONVERSION_UNITS_H__
 
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 #include "base/base.h"
 
 namespace video_framework {
@@ -105,4 +105,4 @@ protected:
 
 }  // namespace video_framework.
 
-#endif // CONVERSION_UNITS_H__
+#endif // VIDEO_SEGMENT_VIDEO_FRAMEWORK_CONVERSION_UNITS_H__

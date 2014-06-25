@@ -26,12 +26,12 @@
 //
 // ---
 
-#ifndef REGION_SEGMENTATION_GRAPH_H__
-#define REGION_SEGMENTATION_GRAPH_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_GRAPH_H__
+#define VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_GRAPH_H__
 
 #include "base/base.h"
-#include "segmentation_common.h"
-#include "segmentation_graph.h"
+#include "segmentation/segmentation_common.h"
+#include "segmentation/segmentation_graph.h"
 
 namespace segmentation {
 
@@ -226,4 +226,4 @@ class RegionAgglomerationGraph {
 
 }  // namespace segmentation.
 
-#endif // REGION_SEGMENTATION_GRAPH_H__
+#endif // VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_GRAPH_H__

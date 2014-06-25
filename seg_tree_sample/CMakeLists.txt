@@ -8,10 +8,15 @@ include("${CMAKE_SOURCE_DIR}/depend.cmake")
 
 set(CMAKE_INCLUDE_CURRENT_DIR 1)
 option(NO_X_SUPPORT "Disables interactive output and linking of X libraries" OFF)
+option(WITH_QT "Enables QT video and segmentation display" OFF)
 
 if (NO_X_SUPPORT)
   add_definitions(-DNO_X_SUPPORT)
 endif(NO_X_SUPPORT)
+
+if (WITH_QT)
+  add_definitions(-DWITH_QT)
+endif(WITH_QT)
 
 add_executable(seg_tree_sample seg_tree.cpp)
 

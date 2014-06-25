@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef PIXEL_DISTANCE_H__
-#define PIXEL_DISTANCE_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_PIXEL_DISTANCE_H__
+#define VIDEO_SEGMENT_SEGMENTATION_PIXEL_DISTANCE_H__
 
 #include "base/base.h"
 #include <type_traits>
@@ -823,4 +823,4 @@ class AggregatedDescriptorTraits :
 
 }  // namespace segmentation.
 
-#endif  // PIXEL_DISTANCE_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_PIXEL_DISTANCE_H__

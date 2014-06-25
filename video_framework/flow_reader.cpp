@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "flow_reader.h"
+#include "video_framework/flow_reader.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/video/tracking.hpp>

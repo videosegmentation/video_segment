@@ -26,14 +26,14 @@
 //
 // ---
 
-#ifndef REGION_SEGMENTATION_H__
-#define REGION_SEGMENTATION_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_H__
+#define VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_H__
 
 #include "base/base.h"
 
 #include <opencv2/core/core.hpp>
 
-#include "segmentation.h"
+#include "segmentation/segmentation.h"
 
 namespace segmentation {
 
@@ -175,4 +175,4 @@ class RegionSegmentation {
 
 }  // namespace segmentation.
 
-#endif  // REGION_SEGMENTATION_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_REGION_SEGMENTATION_H__

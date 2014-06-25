@@ -26,8 +26,9 @@
 //
 // ---
 
-#ifndef VIDEO_DISPLAY_QT_UNIT_H__
-#define VIDEO_DISPLAY_QT_UNIT_H__
+
+#ifndef VIDEO_SEGMENT_VIDEO_DISPLAY_QT_VIDEO_DISPLAY_QT_UNIT_H__
+#define VIDEO_SEGMENT_VIDEO_DISPLAY_QT_VIDEO_DISPLAY_QT_UNIT_H__
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <queue>
@@ -151,4 +152,4 @@ private:
 
 }  // namespace video_framework.
 
-#endif  // VIDEO_DISPLAY_QT_UNIT_H__
+#endif  // VIDEO_SEGMENT_VIDEO_DISPLAY_QT_VIDEO_DISPLAY_QT_UNIT_H__

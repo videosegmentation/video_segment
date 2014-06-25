@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef BASE_H__
-#define BASE_H__
+#ifndef VIDEO_SEGMENT_BASE_BASE_H__
+#define VIDEO_SEGMENT_BASE_BASE_H__
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -114,4 +114,4 @@ class TypedType {
   const std::type_info* type_;
 };
 
-#endif   // BASE_H__
+#endif   // VIDEO_SEGMENT_BASE_BASE_H__

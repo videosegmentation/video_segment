@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef SEGMENTATION_RENDER_H__
-#define SEGMENTATION_RENDER_H__
+#ifndef VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_RENDER_H__
+#define VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_RENDER_H__
 
 #include "base/base.h"
 
@@ -210,4 +210,4 @@ inline void RenderRegionsRandomColor(int hierarchy_level,
 
 }  // namespace segmentation.
 
-#endif // SEGMENTATION_RENDER_H__
+#endif // VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_RENDER_H__

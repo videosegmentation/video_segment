@@ -26,11 +26,11 @@
 //
 // ---
 
-#ifndef VIDEO_DISPLAY_UNIT_H__
-#define VIDEO_DISPLAY_UNIT_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_DISPLAY_UNIT_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_DISPLAY_UNIT_H__
 
-#include "video_unit.h"
 #include "base/base.h"
+#include "video_framework/video_unit.h"
 
 namespace cv {
   class Mat;
@@ -67,4 +67,4 @@ private:
 
 }  // namespace video_framework.
 
-#endif
+#endif  // VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_DISPLAY_UNIT_H__

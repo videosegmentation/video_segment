@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "segmentation_common.h"
+#include "segmentation/segmentation_common.h"
 
 #include "base/base_impl.h"
 #include "segment_util/segmentation_util.h"

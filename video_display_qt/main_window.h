@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef QT4_DISPLAY_MAIN_WINDOW_H__
-#define QT4_DISPLAY_MAIN_WINDOW_H__
+#ifndef VIDEO_SEGMENT_VIDEO_DISPLAY_QT_MAIN_WINDOW_H__
+#define VIDEO_SEGMENT_VIDEO_DISPLAY_QT_MAIN_WINDOW_H__
 
 #include "base/base.h"
 #include <QMainWindow>
@@ -79,4 +79,4 @@ private:
   QPoint mouse_point_;
 };
 
-#endif // QT4_DISPLAY_MAIN_WINDOW_H__
+#endif // VIDEO_SEGMENT_VIDEO_DISPLAY_QT_MAIN_WINDOW_H__

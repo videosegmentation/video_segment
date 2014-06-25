@@ -65,8 +65,8 @@
 //   number of chunks                             : int32
 // }
 
-#ifndef SEGMENTATION_IO_H
-#define SEGMENTATION_IO_H
+#ifndef VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_IO_H__
+#define VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_IO_H__
 
 #include "base/base.h"
 
@@ -211,4 +211,4 @@ void StripToEssentials(const SegmentationDesc& desc,
 
 }  // namespace segmentation.
 
-#endif
+#endif  // VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_IO_H__

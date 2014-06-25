@@ -26,12 +26,12 @@
 //
 // ---
 
-#ifndef SEGMANTATION_COMMON_H__
-#define SEGMANTATION_COMMON_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_SEGMANTATION_COMMON_H__
+#define VIDEO_SEGMENT_SEGMENTATION_SEGMANTATION_COMMON_H__
 
 #include "base/base.h"
-#include "region_descriptor.h"
 #include "segment_util/segmentation_util.h"
+#include "segmentation/region_descriptor.h"
 
 namespace segmentation {
 
@@ -187,4 +187,4 @@ class UnorderedTupleHasher {
 
 }  // namespace segmentation.
 
-#endif // SEGMANTATION_COMMON_H__
+#endif // VIDEO_SEGMENT_SEGMENTATION_SEGMANTATION_COMMON_H__

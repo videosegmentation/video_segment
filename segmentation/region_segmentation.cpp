@@ -26,13 +26,13 @@
 //
 // ---
 
-#include "region_segmentation.h"
+#include "segmentation/region_segmentation.h"
 
 #include <gflags/gflags.h>
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "base/base_impl.h"
-#include "region_descriptor.h"
+#include "segmentation/region_descriptor.h"
 
 DEFINE_int32(min_region_num, 0, "If set > specifies number of minimum regions.");
 DEFINE_int32(max_region_num, 0, "If set >0 specifies number of maximum regions");

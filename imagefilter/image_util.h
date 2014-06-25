@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef IMAGE_UTIL_H__
-#define IMAGE_UTIL_H__
+#ifndef VIDEO_SEGMENT_IMAGEFILTER_IMAGE_UTIL_H__
+#define VIDEO_SEGMENT_IMAGEFILTER_IMAGE_UTIL_H__
 
 #include "base/base.h"
 #include <opencv2/core/core.hpp>
@@ -83,4 +83,4 @@ inline T clamp(const T& value, const T& a, const T& b) {
 
 }  // namespace imagefilter.
 
-#endif
+#endif  // VIDEO_SEGMENT_IMAGEFILTER_IMAGE_UTIL_H__

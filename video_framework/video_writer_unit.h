@@ -26,10 +26,10 @@
 //
 // ---
 
-#ifndef VIDEO_WRITER_UNIT_H__
-#define VIDEO_WRITER_UNIT_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_WRITER_UNIT_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_WRITER_UNIT_H__
 
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 #include "base/base.h"
 
 struct AVCodec;
@@ -111,4 +111,4 @@ private:
 
 }  // namespace video_framework.
 
-#endif // VIDEO_WRITER_UNIT_H__
+#endif // VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_WRITER_UNIT_H__

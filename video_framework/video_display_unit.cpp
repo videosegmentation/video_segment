@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "video_display_unit.h"
+#include "video_framework/video_display_unit.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>

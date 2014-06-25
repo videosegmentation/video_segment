@@ -26,11 +26,11 @@
 //
 // ---
 
-#ifndef FLOW_READER_H__
-#define FLOW_READER_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_FLOW_READER_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_FLOW_READER_H__
 
 #include "base/base.h"
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 
 namespace cv {
   class Mat;
@@ -172,4 +172,4 @@ private:
 
 }  //namespace video_framework.
 
-#endif  // FLOW_READER_H__
+#endif  // VIDEO_SEGMENT_VIDEO_FRAMEWORK_FLOW_READER_H__

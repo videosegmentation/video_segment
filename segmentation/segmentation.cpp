@@ -27,7 +27,7 @@
 // ---
 
 
-#include "segmentation.h"
+#include "segmentation/segmentation.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -36,10 +36,9 @@
 #include "base/base_impl.h"
 #include "segment_util/segmentation_util.h"
 #include "segment_util/segmentation_render.h"
-
-#include "boundary.h"
-#include "dense_segmentation_graph.h"
-#include "region_segmentation_graph.h"
+#include "segmentation/boundary.h"
+#include "segmentation/dense_segmentation_graph.h"
+#include "segmentation/region_segmentation_graph.h"
 
 namespace segmentation {
 

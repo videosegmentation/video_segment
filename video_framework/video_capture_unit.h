@@ -26,11 +26,11 @@
 //
 // ---
 
-#ifndef VIDEO_CAPTURE_UNIT_H__
-#define VIDEO_CAPTURE_UNIT_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_CAPTURE_UNIT_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_CAPTURE_UNIT_H__
 
 #include "base/base.h"
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 
 namespace cv {
 class VideoCapture;
@@ -64,4 +64,4 @@ private:
 
 }  // namespace video_framework.
 
-#endif
+#endif  // VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_CAPTURE_UNIT_H__

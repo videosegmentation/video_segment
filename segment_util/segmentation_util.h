@@ -26,12 +26,14 @@
 //
 // ---
 
-#ifndef SEGMENTATION_UTIL_H__
-#define SEGMENTATION_UTIL_H__
+#ifndef VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_UTIL_H__
+#define VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_UTIL_H__
 
 #include "base/base.h"
+
 #include <google/protobuf/repeated_field.h>
 #include <opencv2/core/core.hpp>
+
 #include "segment_util/segmentation.pb.h"
 
 namespace cv {
@@ -312,4 +314,4 @@ void RemoveRasterization(SegmentationDesc* desc);
 
 }  // namespace segmentation.
 
-#endif  // SEGMENTATION_UTIL_H__
+#endif  // VIDEO_SEGMENT_SEGMENT_UTIL_SEGMENTATION_UTIL_H__

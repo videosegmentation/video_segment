@@ -43,9 +43,10 @@
 #include "video_framework/video_writer_unit.h"
 
 #ifndef NO_X_SUPPORT
+#ifdef WITH_QT
 #include "video_display_qt/video_display_qt_unit.h"
+#endif  // WITH_QT
 #include "video_framework/video_display_unit.h"
-#define USE_QT_DISPLAY 1
 #endif
 
 DEFINE_bool(flow, true, "Determine if optical flow should be computed.");
@@ -73,13 +74,13 @@ DEFINE_int32(downscale_min_size, 0, "If set > 0, downsamples input video to spec
 namespace seg = segmentation;
 namespace vf = video_framework;
 
-#if USE_QT_DISPLAY
+#ifdef WITH_QT
 typedef vf::VideoDisplayQtUnit DisplayUnit;
 typedef vf::VideoDisplayQtOptions DisplayUnitOptions;
 #else
 typedef vf::VideoDisplayUnit DisplayUnit;
 typedef vf::VideoDisplayOptions DisplayUnitOptions;
-#endif  // USE_QT_DISPLAY
+#endif  // WITH_QT
 
 int main(int argc, char** argv) {
   // Initialize Google's logging library.

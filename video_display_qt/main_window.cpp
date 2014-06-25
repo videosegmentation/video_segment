@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "main_window.h"
+#include "video_display_qt/main_window.h"
 
 #include "base/base_impl.h"
 #include <QtGui>

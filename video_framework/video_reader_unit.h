@@ -26,11 +26,11 @@
 //
 // ---
 
-#ifndef VIDEO_READER_UNIT_H__
-#define VIDEO_READER_UNIT_H__
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_READER_UNIT_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_READER_UNIT_H__
 
 #include "base/base.h"
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 
 struct AVCodec;
 struct AVCodecContext;
@@ -123,4 +123,4 @@ class VideoReaderUnit : public VideoUnit {
 
 }  // namespace video_framework.
 
-#endif
+#endif  // VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_READER_UNIT_H__

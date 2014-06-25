@@ -26,14 +26,14 @@
 //
 // ---
 
-#ifndef REGION_DESCRIPTOR_H__
-#define REGION_DESCRIPTOR_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_REGION_DESCRIPTOR_H__
+#define VIDEO_SEGMENT_SEGMENTATION_REGION_DESCRIPTOR_H__
 
 #include <glog/logging.h>
 #include <opencv2/core/core.hpp>
 
 #include "base/base.h"
-#include "histograms.h"
+#include "segmentation/histograms.h"
 #include "segment_util/segmentation.pb.h"
 
 #define SPARSE_HISTS 1
@@ -530,5 +530,5 @@ private:
 
 }  // namespace segmentation.
 
-#endif  // REGION_DESCRIPTOR_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_REGION_DESCRIPTOR_H__
 

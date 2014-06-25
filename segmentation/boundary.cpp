@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "boundary.h"
+#include "segmentation/boundary.h"
 #include "base/base_impl.h"
 
 #include <opencv2/imgproc/imgproc.hpp>

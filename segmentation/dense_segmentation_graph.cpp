@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "dense_segmentation_graph.h"
+#include "segmentation/dense_segmentation_graph.h"
 
 DEFINE_bool(parallel_graph_construction, true, "If set creates graph edges in parallel.");
 

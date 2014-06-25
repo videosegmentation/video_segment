@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef DENSE_SEGMENTATION_GRAPH_H__
-#define DENSE_SEGMENTATION_GRAPH_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_DENSE_SEGMENTATION_GRAPH_H__
+#define VIDEO_SEGMENT_SEGMENTATION_DENSE_SEGMENTATION_GRAPH_H__
 
 #include "base/base.h"
 
@@ -43,9 +43,9 @@
 
 #include <thread>
 
-#include "dense_seg_graph_interface.h"
-#include "pixel_distance.h"
-#include "segmentation_graph.h"
+#include "segmentation/dense_seg_graph_interface.h"
+#include "segmentation/pixel_distance.h"
+#include "segmentation/segmentation_graph.h"
 
 DECLARE_bool(parallel_graph_construction);
 
@@ -1007,4 +1007,4 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::EnforceN4Connecti
 
 }  // namespace segmentation.
 
-#endif // DENSE_SEGMENTATION_GRAPH_H__
+#endif // VIDEO_SEGMENT_SEGMENTATION_DENSE_SEGMENTATION_GRAPH_H__

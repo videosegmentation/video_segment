@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "dense_seg_graph_interface.h"
+#include "segmentation/dense_seg_graph_interface.h"
 
 namespace segmentation {
 

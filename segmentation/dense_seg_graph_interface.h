@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef DENSE_SEG_GRAPH_INTERFACE_H__
-#define DENSE_SEG_GRAPH_INTERFACE_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_DENSE_SEG_GRAPH_INTERFACE_H__
+#define VIDEO_SEGMENT_SEGMENTATION_DENSE_SEG_GRAPH_INTERFACE_H__
 
 #include "base/base.h"
 
@@ -151,4 +151,4 @@ class DenseSegGraphInterface {
 
 }  // namespace segmentation.
 
-#endif  // DENSE_SEG_GRAPH_INTERFACE_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_DENSE_SEG_GRAPH_INTERFACE_H__

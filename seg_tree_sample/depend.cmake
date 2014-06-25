@@ -13,7 +13,9 @@ set(DEPENDENT_PACKAGES base
 if(NO_X_SUPPORT)
   # Nothing to do here.
 else(NO_X_SUPPORT)
-  set(DEPENDENT_PACKAGES ${DEPENDENT_PACKAGES}
-                         video_display_qt
-                         )
+  if(WITH_QT)
+    set(DEPENDENT_PACKAGES ${DEPENDENT_PACKAGES}
+                           video_display_qt
+                           )
+  endif(WITH_QT)
 endif(NO_X_SUPPORT)

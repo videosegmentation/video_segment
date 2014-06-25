@@ -26,14 +26,14 @@
 //
 // ---
 
-#ifndef SEGMENTATION_GRAPH_H__
-#define SEGMENTATION_GRAPH_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_GRAPH_H__
+#define VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_GRAPH_H__
 
 #include "base/base.h"
 
 #include <numeric>
 
-#include "segmentation_common.h"
+#include "segmentation/segmentation_common.h"
 
 namespace segmentation {
 
@@ -776,4 +776,4 @@ bool FastSegmentationGraph<SegTraits>::CheckForIsolatedRegions() {
 
 }  // namespace segmentation.
 
-#endif // SEGMENTATION_GRAPH_H__
+#endif // VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_GRAPH_H__

@@ -27,14 +27,14 @@
 // ---
 
 
-#include "image_filter.h"
+#include "imagefilter/image_filter.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <tbb/tbb.h>
 
 #include "base/base_impl.h"
-#include "image_util.h"
+#include "imagefilter/image_util.h"
 
 namespace imagefilter {
 

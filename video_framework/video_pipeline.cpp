@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "video_pipeline.h"
+#include "video_framework/video_pipeline.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/thread_time.hpp>

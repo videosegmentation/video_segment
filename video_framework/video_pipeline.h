@@ -27,10 +27,13 @@
 // ---
 
 
+#ifndef VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_PIPELINE_H__
+#define VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_PIPELINE_H__
+
 #include "base/base.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "video_unit.h"
+#include "video_framework/video_unit.h"
 #include "tbb/concurrent_queue.h"
 
 namespace boost {
@@ -197,3 +200,5 @@ protected:
 };
 
 }  // namespace video_framework.
+
+#endif  // VIDEO_SEGMENT_VIDEO_FRAMEWORK_VIDEO_PIPELINE_H__

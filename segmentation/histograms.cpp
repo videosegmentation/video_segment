@@ -28,7 +28,7 @@
 
 
 #include "base/base_impl.h"
-#include "histograms.h"
+#include "segmentation/histograms.h"
 
 namespace segmentation {
 

@@ -26,14 +26,14 @@
 //
 // ---
 
-#include "region_descriptor.h"
+#include "segmentation/region_descriptor.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "base/base_impl.h"
 #include "imagefilter/image_util.h"
 #include "segment_util/segmentation_util.h"
-#include "segmentation_common.h"
+#include "segmentation/segmentation_common.h"
 
 namespace segmentation {
 

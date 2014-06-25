@@ -27,7 +27,7 @@
 // ---
 
 
-#include "segmentation_unit.h"
+#include "segmentation/segmentation_unit.h"
 
 #include <gflags/gflags.h>
 #include <google/protobuf/repeated_field.h>
@@ -37,9 +37,8 @@
 #include "base/base_impl.h"
 #include "video_framework/flow_reader.h"
 #include "segment_util/segmentation_render.h"
-
-#include "dense_segmentation.h"
-#include "region_segmentation.h"
+#include "segmentation/dense_segmentation.h"
+#include "segmentation/region_segmentation.h"
 
 DEFINE_bool(strip_to_essentials, false, "If set to true, SegmentationWriter "
                                         "strips segmentation result to essential "

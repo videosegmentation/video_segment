@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "segmentation_render.h"
+#include "segment_util/segmentation_render.h"
 #include "base/base_impl.h"
 
 namespace segmentation {

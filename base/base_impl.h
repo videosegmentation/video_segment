@@ -26,12 +26,12 @@
 //
 // ---
 
-#ifndef BASE_IMPL_H__
-#define BASE_IMPL_H__
+#ifndef VIDEO_SEGMENT_BASE_BASE_IMPL_H__
+#define VIDEO_SEGMENT_BASE_BASE_IMPL_H__
 
 // To be included in implementation files.
 
-#include "base.h"
+#include "base/base.h"
 
 using std::vector;
 using std::list;
@@ -55,4 +55,4 @@ std::string StringPrintf(const char* format, ...);
 // Returns true, if file exists.
 bool FileExists(const std::string& file);
 
-#endif   // BASE_IMPL_H__
+#endif   // VIDEO_SEGMENT_BASE_BASE_IMPL_H__

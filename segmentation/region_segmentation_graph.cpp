@@ -28,7 +28,7 @@
 
 
 #include "base/base_impl.h"
-#include "region_segmentation_graph.h"
+#include "segmentation/region_segmentation_graph.h"
 
 #include <tbb/tbb.h>
 

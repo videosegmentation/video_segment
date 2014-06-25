@@ -26,7 +26,7 @@
 //
 // ---
 
-#include "segmentation_graph.h"
+#include "segmentation/segmentation_graph.h"
 #include "base/base.h"
 
 namespace segmentation {

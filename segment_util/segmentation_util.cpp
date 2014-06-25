@@ -27,7 +27,7 @@
 // ---
 
 
-#include "segmentation_util.h"
+#include "segment_util/segmentation_util.h"
 #include "base/base_impl.h"
 
 #include <cstdio>
@@ -41,15 +41,17 @@
 #endif
 
 namespace {
-  template <class T>
-  T* PtrOffset(T* t, int offset) {
-    return reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(t) + offset);
-  }
 
-  template <class T>
-  const T* PtrOffset(const T* t, int offset) {
-    return reinterpret_cast<const T*>(reinterpret_cast<uint8_t*>(t) + offset);
-  }
+template <class T>
+T* PtrOffset(T* t, int offset) {
+  return reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(t) + offset);
+}
+
+template <class T>
+const T* PtrOffset(const T* t, int offset) {
+  return reinterpret_cast<const T*>(reinterpret_cast<uint8_t*>(t) + offset);
+}
+
 }
 
 namespace segmentation {

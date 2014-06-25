@@ -27,7 +27,7 @@
 // ---
 
 
-#include "video_display_qt_unit.h"
+#include "video_display_qt/video_display_qt_unit.h"
 
 #include <boost/thread.hpp>
 #include <boost/thread/thread_time.hpp>
@@ -39,7 +39,7 @@
 #include <opencv2/core/core.hpp>
 
 #include "base/base_impl.h"
-#include "main_window.h"
+#include "video_display_qt/main_window.h"
 #include "segment_util/segmentation_io.h"
 #include "segment_util/segmentation_render.h"
 #include "segment_util/segmentation_util.h"

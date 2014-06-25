@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef SEGMENTATION_UNIT_H__
-#define SEGMENTATION_UNIT_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_UNIT_H__
+#define VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_UNIT_H__
 
 #include "base/base.h"
 #include "segment_util/segmentation_io.h"
@@ -325,4 +325,4 @@ private:
 
 }  // namespace segmentation.
 
-#endif // SEGMENTATION_UNIT_H__
+#endif // VIDEO_SEGMENT_SEGMENTATION_SEGMENTATION_UNIT_H__

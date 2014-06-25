@@ -26,8 +26,8 @@
 //
 // ---
 
-#ifndef HISTOGRAMS_H__
-#define HISTOGRAMS_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_HISTOGRAMS_H__
+#define VIDEO_SEGMENT_SEGMENTATION_HISTOGRAMS_H__
 
 #include "base/base.h"
 
@@ -199,4 +199,4 @@ private:
 
 }  // namespace segmentation.
 
-#endif  // HISTOGRAMS_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_HISTOGRAMS_H__

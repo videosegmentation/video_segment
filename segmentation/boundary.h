@@ -26,12 +26,14 @@
 //
 // ---
 
-#ifndef BOUNDARY_H__
-#define BOUNDARY_H__
+#ifndef VIDEO_SEGMENT_SEGMENTATION_BOUNDARY_H__
+#define VIDEO_SEGMENT_SEGMENTATION_BOUNDARY_H__
 
 #include "base/base.h"
-#include "segment_util/segmentation.pb.h"
+
 #include <opencv2/core/core.hpp>
+
+#include "segment_util/segmentation.pb.h"
 
 namespace segmentation {
 
@@ -205,4 +207,4 @@ typedef std::unordered_map<BoundarySegmentKey, int,
 }  // namespace segmentation.
 
 
-#endif  // BOUNDARY_H__
+#endif  // VIDEO_SEGMENT_SEGMENTATION_BOUNDARY_H__

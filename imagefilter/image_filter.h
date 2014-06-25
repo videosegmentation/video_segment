@@ -26,10 +26,11 @@
 //
 // ---
 
-#ifndef IMAGE_FILTER_H__
-#define IMAGE_FILTER_H__
+#ifndef VIDEO_SEGMENT_IMAGEFILTER_IMAGE_FILTER_H__
+#define VIDEO_SEGMENT_IMAGEFILTER_IMAGE_FILTER_H__
 
 #include "base/base.h"
+
 namespace cv {
   class Mat;
 }
@@ -43,4 +44,4 @@ void BilateralFilter(const cv::Mat& image, float sigma_space, float sigma_color,
 }  // namespace imagefilter.
 
 
-#endif   // IMAGE_FILTER_H__
+#endif   // VIDEO_SEGMENT_IMAGEFILTER_IMAGE_FILTER_H__
