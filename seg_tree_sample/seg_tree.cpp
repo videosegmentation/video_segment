@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
       FLAGS_input_file.substr(0, FLAGS_input_file.find_last_of(".")) + ".flow";
   bool use_flow_from_file = false;
   if (FLAGS_flow) {
-    use_flow_from_file = FileExists(flow_file);
+    use_flow_from_file = base::FileExists(flow_file);
   }
 
   // Setup the actual video units.
