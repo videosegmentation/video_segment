@@ -493,6 +493,7 @@ std::string VideoUnit::PrintTreeImpl(int indent) const {
   for (auto& child_ptr : children_) {
     result += child_ptr->PrintTreeImpl(indent + 2);
   }
+  return result;
 }
 
 

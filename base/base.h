@@ -40,6 +40,9 @@
 #include <list>
 #include <memory>
 #include <string>
+#ifdef PARALLEL_FOR_THREAD
+#include <thread>
+#endif  // PARALLEL_FOR_THREAD.
 #include <typeinfo>
 #include <unordered_map>
 #include <unordered_set>
@@ -120,7 +123,7 @@ class TypedType {
 class BlockedRange {
  public:
   BlockedRange() = default;
-  BlockedRange(int begin, int end, int grain_size = 1) 
+  BlockedRange(int begin, int end, int grain_size = 1)
     : begin_(begin), end_(end), grain_size_(grain_size) { }
 
   int begin() const { return begin_; }
@@ -135,11 +138,25 @@ class BlockedRange {
 
 template<class Invoker>
 void ParallelFor(const BlockedRange& range, const Invoker& invoker) {
-  // TODO(grundman): grain size should go into for loop.
-  #pragma omp parallel for
-  for (int i = range.begin(); i < range.end(); ++i) {
-    invoker(BlockedRange(i, i + 1));
+#ifdef PARALLEL_FOR_THREAD
+  // Implementation using std::thread.
+  static constexpr int kNumThreads = 8;
+  int grain_size = std::max((range.end() - range.begin()) / kNumThreads, 1);
+  std::vector<std::thread> workers;
+  for (int i = range.begin(); i < range.end(); i += grain_size) {
+    workers.push_back(
+        std::thread(&Invoker::operator(), Invoker(invoker),
+                    (BlockedRange(i, std::min(range.end(), i + grain_size)))));
   }
+  for (auto& worker : workers) {
+    worker.join();
+  }
+#else
+  #pragma omp parallel for
+  for (int i = range.begin(); i < range.end(); i += range.grain_size()) {
+    invoker(BlockedRange(i, std::min(range.end(), i + range.grain_size())));
+  }
+#endif
 }
 
 }  // namespace base.

@@ -41,6 +41,8 @@ if (UNIX)
   # Parallelization.
   if (NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  else (NOT APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPARALLEL_FOR_THREAD")
   endif (NOT APPLE)
 
   # C++11 support.
