@@ -26,6 +26,8 @@
 //
 // ---
 
+syntax = "proto2";
+
 package segmentation;
 
 // Generic RegionFeatures. Add specific feature descriptors via extensions.
