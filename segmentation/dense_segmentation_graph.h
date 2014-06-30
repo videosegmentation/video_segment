@@ -307,7 +307,8 @@ template<class DistanceTraits, class DescriptorTraits>
 void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::InitializeGraph() {
   const int nodes_per_frame = frame_width_ * frame_height_;
 
-  this->regions_.reserve(nodes_per_frame * max_frames_);
+  // Allocate 2% more for flattening operation.
+  this->ReserveNodes(nodes_per_frame * max_frames_ * 1.02f);
   const int neighbors = nodes_per_frame * 26 / 2;    // number of regions times average
                                                      // average number of edges.
                                                      // Undirected edges -> divide by 2
@@ -464,6 +465,8 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
                   bool enforce_n4_connections) {
   DCHECK(this->CheckForIsolatedRegions());
 
+  // this->FlattenUnionFind(true);
+
   // Flag boundary with -1.
   region_ids_.row(0).setTo(-1);
   region_ids_.row(frame_height_ + 1).setTo(-1);
@@ -496,9 +499,6 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
       int* region_ptr = id_view.ptr<int>(i);
       for (int j = 0; j < frame_width_; ++j, ++idx) {
         region_ptr[j] = this->GetRegion(idx)->my_id;
-        if (region_ptr[j] == 209922) {
-          LOG(INFO) << t << ": " << j << ", " << i;
-        }
       }
     }
 

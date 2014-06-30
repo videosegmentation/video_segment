@@ -620,7 +620,7 @@ void FastSegmentationGraph<SegTraits>::FlattenUnionFind(bool separate_representa
       regions_[i].my_id = flattened_id;
     }
     LOG(INFO) << "Inserted " << new_region_id - region_offset
-              << " new representatives.";
+              << " new representatives for " << region_offset << " regions.";
   } else {
     for (auto& region : regions_) {
       region.my_id = GetRegion(region.my_id)->my_id;
