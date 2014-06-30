@@ -134,12 +134,14 @@ public:
   virtual void SegmentGraphSpatially();
   virtual void SegmentFullGraph(int min_region_size, bool force_constraints);
 
-  virtual void AssignRegionIds(RegionInfoList* region_list,
-                               RegionInfoPtrMap* map);
+  virtual void DetermineNeighborIds(RegionInfoList* region_list,
+                                    RegionInfoPtrMap* map);
 
-  virtual void ObtainScanlineRepFromResults(const RegionInfoPtrMap& map,
-                                            bool remove_thin_structure,
-                                            bool enforce_n4_connections);
+  // Traverses regions and fills their rasterization as well as assigns id.
+  virtual void ObtainResults(RegionInfoList* region_list,
+                             RegionInfoPtrMap* map,
+                             bool remove_thin_structure,
+                             bool enforce_n4_connections);
 
  protected:
   // Forward functions called after undoing type erasure via AbstractPixelDistance.
@@ -169,6 +171,17 @@ public:
                      int prev_idx,
                      Distance* distance,
                      std::vector<EdgeTuple>* local_edges);
+
+
+  // Adds interval to region_id's corresponding RegionInformation* or creates new one
+  // in region_list if not present in map yet.
+  void AddIntervalToRasterization(int frame,
+                                  int y,
+                                  int left_x,
+                                  int right_x,
+                                  int region_id,
+                                  RegionInfoList* region_list,
+                                  RegionInfoPtrMap* map);
 
   int FrameNumber() const { return num_frames_; }
   int MaxFrames() const { return max_frames_; }
@@ -401,31 +414,39 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::SegmentFullGraph(
 }
 
 template<class DistanceTraits, class DescriptorTraits>
-void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::AssignRegionIds(
+void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::DetermineNeighborIds(
     RegionInfoList* region_list,
     RegionInfoPtrMap* map) {
-  this->AssignRegionIdAndDetermineNeighbors(region_list, map);
+  this->DetermineNeighborIdsImpl(region_list, map);
 }
 
-namespace {
+template<class DistanceTraits, class DescriptorTraits>
+void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
+    AddIntervalToRasterization(int frame,
+                               int y,
+                               int left_x,
+                               int right_x,
+                               int region_id,
+                               RegionInfoList* region_list,
+                               RegionInfoPtrMap* map) {
+  DCHECK_GE(region_id, 0);
+  DCHECK_LT(region_id, this->regions_.size());
+  DCHECK_EQ(region_id, this->regions_[region_id].my_id)
+    << "Region is not a representative.";
+  RegionInformation* ri = this->GetCreateRegionInformation(this->regions_[region_id],
+                                                           false, region_list, map);
 
-void AddIntervalToRasterization(int frame,
-                                int y,
-                                int left_x,
-                                int right_x,
-                                int region_id,
-                                const RegionInfoPtrMap& map) {
-  // Look up region with id.
-  const auto region_iter = map.find(region_id);
-  DCHECK(region_iter != map.end()) << "Region " << region_id << " not found in map.";
-
-  RegionInformation* ri = region_iter->second;
+  // Allocate rasterization if necessary.
+  if (ri->raster == nullptr) {
+    ri->raster.reset(new Rasterization3D);
+  }
 
   // Current frame-slice present?
   if (ri->raster->empty() || ri->raster->back().first < frame) {
     ri->raster->push_back(
         std::make_pair(frame, std::shared_ptr<Rasterization>(new Rasterization())));
   }
+
 
   Rasterization* raster = ri->raster->back().second.get();
   ScanInterval* scan_inter = raster->add_scan_inter();
@@ -434,19 +455,14 @@ void AddIntervalToRasterization(int frame,
   scan_inter->set_right_x(right_x);
 }
 
-}   // namespace.
 
 template<class DistanceTraits, class DescriptorTraits>
 void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
-    ObtainScanlineRepFromResults(const RegionInfoPtrMap& region_map,
-                                 bool remove_thin_structure,
-                                 bool enforce_n4_connections) {
+    ObtainResults(RegionInfoList* region_list,
+                  RegionInfoPtrMap* region_map,
+                  bool remove_thin_structure,
+                  bool enforce_n4_connections) {
   DCHECK(this->CheckForIsolatedRegions());
-
-  // Allocate rasterizations.
-  for (auto& map_entry : region_map) {
-    map_entry.second->raster.reset(new Rasterization3D);
-  }
 
   // Flag boundary with -1.
   region_ids_.row(0).setTo(-1);
@@ -480,6 +496,9 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
       int* region_ptr = id_view.ptr<int>(i);
       for (int j = 0; j < frame_width_; ++j, ++idx) {
         region_ptr[j] = this->GetRegion(idx)->my_id;
+        if (region_ptr[j] == 209922) {
+          LOG(INFO) << t << ": " << j << ", " << i;
+        }
       }
     }
 
@@ -510,6 +529,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
                                      left_x,        // start x
                                      j - 1,         // end x
                                      prev_id,       // region id
+                                     region_list,
                                      region_map);
           // Reset current interval information.
           left_x = j;
@@ -518,7 +538,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
 
         // Add interval when end of scanline is reached.
         if (j + 1 == frame_width_) {
-          AddIntervalToRasterization(t, i, left_x, j, prev_id, region_map);
+          AddIntervalToRasterization(t, i, left_x, j, prev_id, region_list, region_map);
         }
       }
     }
@@ -526,8 +546,15 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
 
   // Adjust sizes.
   for (const auto& map_adjust_entry : size_adjust_map) {
-    const auto pos = region_map.find(map_adjust_entry.first);
-    DCHECK(pos != region_map.end());
+    const auto pos = region_map->find(map_adjust_entry.first);
+    if (pos == region_map->end()) {
+      // Unlikely, but region could be completely erased, in which case it would have
+      // no rasterization.
+      DCHECK_EQ(0, this->regions_[map_adjust_entry.first].sz + map_adjust_entry.second);
+      // Flag as virtual.
+      this->regions_[map_adjust_entry.first].sz = 0;
+      continue;
+    }
     pos->second->size += map_adjust_entry.second;
   }
 }

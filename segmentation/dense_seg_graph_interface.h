@@ -88,13 +88,14 @@ struct DistanceTraits {
 // // Obtain results.
 // RegionInfoList regions;
 // RegionInfoPtrMap id_to_region_map;    // Maps representative id to RegionInformation*
-// graph.AssignRegionIds(&regions, &id_to_region_map);
+// graph.ObtainResults(&regions,
+//                    &id_to_region_map,
+//                    false,    // Thin structure suppression.
+//                    true);    // N4 connectivity.
 //
-// // Read out rasterized results.
-// graph.ObtainScanlineRepFromResults(id_to_region_map,
-//                                    false,    // Thin structure suppression.
-//                                    true);    // N4 connectivity.
-
+//
+// // Determine neighboring information.
+// graph.DetermineNeighborIds(&regions, &id_to_region_map);
 
 // Forward decl's.
 class AbstractPixelDistance;
@@ -139,14 +140,17 @@ class DenseSegGraphInterface {
   // Full spatio-temporal segmentation.
   virtual void SegmentFullGraph(int min_region_size, bool force_constraints) = 0;
 
-  // After segmentation: Assigns region ids and neighbors.
-  virtual void AssignRegionIds(RegionInfoList* region_list,
-                               RegionInfoPtrMap* map) = 0;
+  // After segmentation: Assigns region ids and creates corresponding rasterization
+  // for each region.
+  virtual void ObtainResults(RegionInfoList* region_list,
+                             RegionInfoPtrMap* map,
+                             bool remove_thin_structure,
+                             bool enforce_n4_connections) = 0;
 
-  // Creates corresponding rasterization for each region.
-  virtual void ObtainScanlineRepFromResults(const RegionInfoPtrMap& map,
-                                            bool remove_thin_structure,
-                                            bool enforce_n4_connections) = 0;
+
+  // After obtain results: Determines neighboring information.
+  virtual void DetermineNeighborIds(RegionInfoList* region_list,
+                                    RegionInfoPtrMap* map) = 0;
 };
 
 }  // namespace segmentation.

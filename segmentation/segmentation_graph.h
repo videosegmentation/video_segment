@@ -185,6 +185,11 @@ public:
     AssignRegionIdAndDetermineNeighbors(region_list, nullptr, map);
   }
 
+  // Only determines neighbors, in case regions have already been created.
+  // Might create regions for virtual nodes.
+  void DetermineNeighborIdsImpl(RegionInfoList* region_list,
+                                RegionInfoPtrMap* map);
+
   // Same as above, but limits determination of neighbors to specified bucket lists.
   void AssignRegionIdAndDetermineNeighbors(
       RegionInfoList* region_list,
@@ -275,6 +280,15 @@ protected:
   // based on size).
   inline Region* MergeRegions(Region* rep_1, Region* rep_2);
 
+  // Creates a new RegionInformation for the specified representative
+  // (result of GetRegion, not checked!) and inserts pair
+  // (rep_id, pointer to RegionInformation) into map, or returns already inserted
+  // map entry.
+  RegionInformation* GetCreateRegionInformation(const Region& rep,
+                                                bool new_regions_virtual,
+                                                RegionInfoList* region_list,
+                                                RegionInfoPtrMap* map);
+
   const float max_weight_ = 0;
   const int num_buckets_ = 0;
 
@@ -298,6 +312,9 @@ protected:
   std::vector<std::vector<EdgeList>> bucket_lists_;
 
   bool flattened_ = false;
+
+  // Holds maximum assigned region id.
+  int max_region_id_ = 0;
 
   SegTraits seg_traits_;
 };
@@ -445,14 +462,70 @@ void FastSegmentationGraph<SegTraits>::SegmentGraph(
             << num_small_region_merges / total_merges * 100.f << "%)";
 }
 
+
+template <class SegTraits>
+void FastSegmentationGraph<SegTraits>::DetermineNeighborIdsImpl(
+    RegionInfoList* region_list,
+    RegionInfoPtrMap* map) {
+  // Also process last bucket (virtual edges).
+  for (int bucket_idx = 0; bucket_idx <= num_buckets_; ++bucket_idx) {
+    for (int bucket_list_idx = 0; bucket_list_idx < bucket_lists_.size();
+        ++bucket_list_idx) {
+      for (const auto& e : bucket_lists_[bucket_list_idx][bucket_idx]) {
+        const Region* r1 = GetRegion(e.region_1);
+        const Region* r2 = GetRegion(e.region_2);
+
+        const int r1_id = r1->my_id;
+        const int r2_id = r2->my_id;
+
+        if (r1_id == r2_id) {
+          continue;
+        }
+
+        RegionInformation* r1_info = GetCreateRegionInformation(
+            *r1, true, region_list, map);
+        RegionInformation* r2_info = GetCreateRegionInformation(
+            *r2, true, region_list, map);
+
+        // TODO(grundman): Too simple, account for spatial, temporal differently.
+        InsertSortedUniquely(r2_info->index, &r1_info->neighbor_idx);
+        InsertSortedUniquely(r1_info->index, &r2_info->neighbor_idx);
+      }  // for edge loop.
+    } // end bucket list loop.
+  } // end bucket loop.
+}
+
+template <class SegTraits>
+RegionInformation* FastSegmentationGraph<SegTraits>::GetCreateRegionInformation(
+    const Region& region,
+    bool new_regions_virtual,
+    RegionInfoList* region_list,
+    RegionInfoPtrMap* map) {
+  // Find region hash_map, insert if not present.
+  auto hash_iter = map->find(region.my_id);
+  if (hash_iter != map->end()) {
+    return hash_iter->second;
+  } else {
+    DCHECK(!new_regions_virtual || region.sz == 0);
+
+    // Does not exists yet --> insert.
+    RegionInformation* new_region_info = new RegionInformation;
+    new_region_info->index = max_region_id_++;
+    new_region_info->size = region.sz;
+    new_region_info->constrained_id = region.constraint_id;
+
+    // Add to list and hash_map.
+    region_list->emplace_back(new_region_info);
+    map->insert(std::make_pair(region.my_id, new_region_info));
+    return new_region_info;
+  }
+}
+
 template <class SegTraits>
 void FastSegmentationGraph<SegTraits>::AssignRegionIdAndDetermineNeighbors(
   RegionInfoList* region_list,
   const std::vector<int>* neighbor_eval_bucket_list_ids,
   RegionInfoPtrMap* map) {
-  // Traverse all remaining edges.
-  int max_region_id = 0;
-
   // Convert bucket_list_idx to std::vector of flags.
   std::vector<bool> consider_for_neighbor_info(
     bucket_lists_.size(), neighbor_eval_bucket_list_ids == nullptr ? true : false);
@@ -467,19 +540,6 @@ void FastSegmentationGraph<SegTraits>::AssignRegionIdAndDetermineNeighbors(
     }
   }
 
-  auto insert_region =
-    [&max_region_id, region_list, map](const Region* region) -> RegionInformation* {
-      RegionInformation* new_region_info = new RegionInformation;
-      new_region_info->index = max_region_id++;
-      new_region_info->size = region->sz;
-      new_region_info->constrained_id = region->constraint_id;
-
-      // Add to list and hash_map.
-      region_list->emplace_back(new_region_info);
-      map->insert(std::make_pair(region->my_id, new_region_info));
-      return new_region_info;
-    };
-
   // Also process last bucket (virtual edges).
   for (int bucket_idx = 0; bucket_idx <= num_buckets_; ++bucket_idx) {
     for (int bucket_list_idx = 0; bucket_list_idx < bucket_lists_.size();
@@ -489,31 +549,14 @@ void FastSegmentationGraph<SegTraits>::AssignRegionIdAndDetermineNeighbors(
         const Region* r1 = GetRegion(e.region_1);
         const Region* r2 = GetRegion(e.region_2);
 
-        const int r1_id = r1->my_id;
-        const int r2_id = r2->my_id;
-
-        if (r1_id == r2_id) {
+        if (r1->my_id == r2->my_id) {
           continue;
         }
 
-        RegionInformation* r1_info;
-        RegionInformation* r2_info;
-
-        // Find region 1 in hash_map, insert if not present.
-        auto hash_iter = map->find(r1->my_id);
-        if (hash_iter == map->end()) {  // Does not exists yet --> insert.
-          r1_info = insert_region(r1);
-        } else {
-          r1_info = hash_iter->second;
-        }
-
-        // Same for region 2.
-        hash_iter = map->find(r2->my_id);
-        if (hash_iter == map->end()) {
-          r2_info = insert_region(r2);
-        } else {
-          r2_info = hash_iter->second;
-        }
+        RegionInformation* r1_info = GetCreateRegionInformation(
+            *r1, false, region_list, map);
+        RegionInformation* r2_info = GetCreateRegionInformation(
+            *r2, false, region_list, map);
 
         if (neighbor_eval) {
           InsertSortedUniquely(r2_info->index, &r1_info->neighbor_idx);
@@ -523,7 +566,7 @@ void FastSegmentationGraph<SegTraits>::AssignRegionIdAndDetermineNeighbors(
     } // end bucket list loop.
   } // end bucket loop.
 
-  if (max_region_id == 0) {
+  if (max_region_id_ == 0) {
     LOG(WARNING) << "AssignRegionIdAndDetermineNeighbors: No boundary edges found. "
                  << "This results in only one region and is probably not what was "
                  << "desired. Check passed edge weights.";

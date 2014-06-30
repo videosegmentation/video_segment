@@ -285,14 +285,14 @@ void Segmentation::RunOverSegmentation() {
   }
 
   RegionInfoPtrMap map;
-  dense_seg_graph_->AssignRegionIds(region_list.get(), &map);
+  dense_seg_graph_->ObtainResults(
+      region_list.get(),
+      &map,
+      options_.thin_structure_suppression,
+      options_.enforce_n4_connectivity);
 
-  dense_seg_graph_->ObtainScanlineRepFromResults(map,
-                                                 options_.thin_structure_suppression,
-                                                 options_.enforce_n4_connectivity);
+  dense_seg_graph_->DetermineNeighborIds(region_list.get(), &map);
 
-  // Check monotonicity of rasterizations.
-  
   // De-allocate dense_graph.
   dense_seg_graph_.reset();
   region_infos_.clear();
@@ -302,7 +302,7 @@ void Segmentation::RunOverSegmentation() {
 void Segmentation::RunHierarchicalSegmentation(const RegionDistance& distance,
                                                bool enforce_max_region_num) {
 
-  CHECK(!region_infos_.empty() && region_infos_[0] != nullptr) 
+  CHECK(!region_infos_.empty() && region_infos_[0] != nullptr)
     << "InitializeBaseHierarchyLevel wasn't called.";
   VLOG(1) << "Hierarchical segmentation with " << frame_number_ << " frames.";
   enforce_max_region_num_ = enforce_max_region_num;
@@ -422,6 +422,9 @@ void Segmentation::AdjustRegionAreaToFrameInterval(int lhs, int rhs) {
   // Process over-segmentation first.
   for (auto& region_ptr : *region_infos_[0]) {
     int size_increment = 0;
+    if (region_ptr->raster == nullptr) {
+      continue;
+    }
     for (const auto& slice : *region_ptr->raster) {
       if (slice.first < lhs || slice.first >= rhs) {
         size_increment -= RasterizationArea(*slice.second);
@@ -660,7 +663,10 @@ void Segmentation::AddRegion2DToSegmentationDesc(const RegionInformation& ri,
                                                  int frame_number,
                                                  SegmentationDesc* desc) const {
   // Does current RegionInfo has scanline in current frame?
-  DCHECK(ri.raster.get());
+  if (ri.raster == nullptr) {
+    DCHECK_EQ(0, ri.size) << "Expected virtual node.";
+    return;
+  }
 
   auto raster_iter = LocateRasterization(frame_number, *ri.raster);
   if (raster_iter == ri.raster->end() || raster_iter->first != frame_number) {
