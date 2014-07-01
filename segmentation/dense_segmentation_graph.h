@@ -260,7 +260,12 @@ protected:
   void EnforceN4Connectivity(cv::Mat* id_image,
                              std::unordered_map<int, int>* size_adjust_map);
 
-
+  // Ensures that all regions are spatially connected (within a radius of their
+  // corresponding diameter).
+  void EnforceSpatialConnectedness(
+        RegionInfoList* region_list,
+        RegionInfoPtrMap* region_map,
+        std::unordered_map<int, int>* size_adjust_map);
 
   // Used to add constrained nodes.
   cv::Mat region_ids_;
@@ -544,6 +549,9 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
     }
   }  // end image traversal.
 
+  // Enforce spatial connectedness.
+  // EnforceSpatialConnectedness(region_list, region_map, &size_adjust_map);
+
   // Adjust sizes.
   for (const auto& map_adjust_entry : size_adjust_map) {
     const auto pos = region_map->find(map_adjust_entry.first);
@@ -556,6 +564,38 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
       continue;
     }
     pos->second->size += map_adjust_entry.second;
+  }
+}
+
+template<class DistanceTraits, class DescriptorTraits>
+void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
+    EnforceSpatialConnectedness(
+        RegionInfoList* region_list,
+        RegionInfoPtrMap* region_map,
+        std::unordered_map<int, int>* size_adjust_map) {
+  const int num_regions = region_list->size();
+  for (int k = 0; k < num_regions; ++k) {
+    RegionInformation& ri = *(*region_list)[k];
+    if (ri.raster == nullptr) {
+      continue;
+    }
+
+    Rasterization3D& raster = *ri.raster;
+
+    for (const auto& raster_slice : raster) {
+      std::vector<Rasterization> components;
+      ConnectedComponents(*raster_slice.second, N4_CONNECT, &components);
+
+      if (components.size() > 1) {
+        // Disconnected. Determine by how much.
+        std::vector<ShapeDescriptor> shapes(components.size());
+        for (int l = 0; l < components.size(); ++l) {
+          ShapeMoments moment;
+          ShapeMomentsFromRasterization(components[l], &moment);
+          GetShapeDescriptorFromShapeMoment(moment, &shapes[l]);
+        }
+      }
+    }
   }
 }
 
