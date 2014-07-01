@@ -58,7 +58,7 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
   // Setup FFMPEG.
   if (!ffmpeg_initialized_) {
     ffmpeg_initialized_ = true;
-    avcodec_register_all();
+    av_register_all();
   }
 
   // Find video stream index.
