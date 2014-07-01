@@ -46,7 +46,7 @@ void ViewerHierarchyLevelChanged(int pos, void* viewer);
 
 class Viewer {
  public:
-  Viewer(const string& filename, const string& window_name)
+  Viewer(const std::string& filename, const std::string& window_name)
       : filename_(filename), window_name_(window_name) {
   }
 
@@ -169,7 +169,7 @@ class Viewer {
   }
 
  private:
-  string filename_;
+  std::string filename_;
 
   // Frame width and height.
   int frame_width_ = 0;
@@ -192,7 +192,7 @@ class Viewer {
   bool playing_ = false;
 
   // The name used to identify the GTK window
-  string window_name_;
+  std::string window_name_;
 };
 
 // Callbacks for OpenCV.
@@ -213,7 +213,7 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  string window_name;
+  std::string window_name;
   if (FLAGS_window_name.empty()) {
     window_name = argv[2];
   } else {

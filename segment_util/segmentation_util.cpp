@@ -348,7 +348,7 @@ bool GetShapeDescriptorFromRegions(const vector<const Region2D*>& regions,
 void RenderShapeDescriptor(const vector<int>& overseg_region_ids,
                            const SegmentationDesc& desc,
                            cv::Mat* output,
-                           const string* label) {
+                           const std::string* label) {
   CHECK_NOTNULL(output);
   vector<const Region2D*> regions;
   // Get regions from id's.

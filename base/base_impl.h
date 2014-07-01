@@ -35,7 +35,6 @@
 
 using std::vector;
 using std::list;
-using std::string;
 using std::pair;
 using std::shared_ptr;
 using std::unique_ptr;
@@ -47,7 +46,6 @@ using std::unordered_map;
 using std::unordered_set;
 
 #include <functional>
-using std::hash;
 
 namespace base {
 

@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
   enum ConvMode { CONV_TEXT, CONV_BINARY, CONV_BITMAP_ID, CONV_BITMAP_COLOR, STRIP };
   ConvMode mode = CONV_TEXT;
   float hier_level = 0;
-  string dest_filename;
+  std::string dest_filename;
 
   if (FLAGS_text_format) {
     mode = CONV_TEXT;
@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
                                &frame_buffer);
       cv::imwrite(curr_file, frame_buffer);
     } else if (mode == STRIP) {
-      string stripped_data;
+      std::string stripped_data;
       StripToEssentials(segmentation,
                         use_vectorization,
                         false,   // no shape moments.

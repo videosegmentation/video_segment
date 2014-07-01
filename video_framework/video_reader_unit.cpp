@@ -52,7 +52,7 @@ namespace video_framework {
 bool VideoReaderUnit::ffmpeg_initialized_ = false;
 
 VideoReaderUnit::VideoReaderUnit(const VideoReaderOptions& options,
-                                 const string& video_file)
+                                 const std::string& video_file)
     : options_(options),
       video_file_(video_file) {
   codec_context_ = 0;

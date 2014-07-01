@@ -496,8 +496,8 @@ bool BoundaryComputation::IsFrameRectangleSegment(
 
 namespace {
 
-string PointVectorString(const std::vector<cv::Point2i>& pt) {
-  string result = base::StringPrintf("vec with %d points\n", pt.size());
+std::string PointVectorString(const std::vector<cv::Point2i>& pt) {
+  std::string result = base::StringPrintf("vec with %d points\n", pt.size());
   for (const auto& p : pt) {
     result += base::StringPrintf("> %d, %d \n", p.x, p.y);
   }

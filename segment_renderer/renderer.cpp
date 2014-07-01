@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
     VideoWriterOptions writer_options;
     // Target bit rate.
     writer_options.bit_rate = frame_width * frame_height * 300;
-    
+
     if (FLAGS_min_output_dim > 0) {
       writer_options.scale_min_dim = FLAGS_min_output_dim;
     }
@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
       return -1;
     }
   }
-  
+
   // Keeps current hierarchy per chunk.
   Hierarchy hierarchy;
   // Absolute render level (constant across all chunks).
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
     // Read from file.
     SegmentationDesc segmentation;
     segment_reader.ReadNextFrame(&segmentation);
- 
+
     if (segmentation.hierarchy_size() > 0) {
       hierarchy = segmentation.hierarchy();
       // Convert fractional to constant absolute level.
@@ -271,14 +271,14 @@ int main(int argc, char** argv) {
     if (video_output) {              // Use VideoFrame as default backing store.
       curr_frame.reset(new VideoFrame(frame_width,
                                       frame_height,
-                                      3, 
+                                      3,
                                       width_step,
                                       f));
       curr_frame->MatView(&frame_view);
     } else {
       frame_view.create(frame_height, frame_width, CV_8UC3);
     }
-    
+
     if (project_regions.empty()) {
       RenderRegionsRandomColor(FLAGS_render_level,
                                true,     // With boundaries.
@@ -289,7 +289,7 @@ int main(int argc, char** argv) {
     } else {
       RenderRegions(false,       // No boundaries.
                     false,       // No shape moments.
-                    segmentation, 
+                    segmentation,
                     ProjectRegionColorGenerator(project_regions),
                     &frame_view);
     }
@@ -298,7 +298,7 @@ int main(int argc, char** argv) {
       std::string output_file = base::StringPrintf("%s/frame%05d.png",
                                                    FLAGS_output_image_dir.c_str(),
                                                    f);
-      cv::imwrite(output_file, frame_view);                                       
+      cv::imwrite(output_file, frame_view);
     }
 
     if (video_output) {

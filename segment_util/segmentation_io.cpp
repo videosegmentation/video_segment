@@ -73,12 +73,12 @@ bool SegmentationWriter::OpenFile(const vector<int>& header_entries) {
 
 void SegmentationWriter::AddSegmentationToChunk(const SegmentationDesc& desc,
                                                 int64_t pts) {
-  string data;
+  std::string data;
   desc.SerializeToString(&data);
   AddSegmentationDataToChunk(data, pts);
 }
 
-void SegmentationWriter::AddSegmentationDataToChunk(const string& data,
+void SegmentationWriter::AddSegmentationDataToChunk(const std::string& data,
                                                     int64_t pts) {
   // Buffer for later.
   file_offsets_.push_back(curr_offset_);
@@ -153,7 +153,7 @@ void SegmentationWriter::WriteTermHeaderAndClose() {
    LOG(INFO) << "Wrote a total of " << total_frames_ << " frames.";
 }
 
-void SegmentationWriter::FlushAndReopen(const string& filename) {
+void SegmentationWriter::FlushAndReopen(const std::string& filename) {
   if (!chunk_buffer_.empty()) {
     WriteChunk();
   }
@@ -244,7 +244,7 @@ void SegmentationReader::SegmentationResolution(int* width, int* height) {
   SeekToFrame(0);
 
   // Read via binary as we don't need rasterization here.
-  string data;
+  std::string data;
   ReadNextFrameBinary(&data);
 
   SegmentationDesc segmentation;
@@ -263,7 +263,7 @@ void SegmentationReader::SeekToFrame(int frame) {
   curr_frame_ = frame;
 }
 
-bool SegmentationReader::ReadNextFrameBinary(string* data) {
+bool SegmentationReader::ReadNextFrameBinary(std::string* data) {
   // Seek to next frame (to skip chunk headers).
   ifs_.seekg(file_offsets_[curr_frame_]);
   char header_type[5] = {0, 0, 0, 0, 0};
@@ -284,7 +284,7 @@ bool SegmentationReader::ReadNextFrameBinary(string* data) {
 
 bool SegmentationReader::ReadNextFrame(SegmentationDesc* desc) {
   CHECK_NOTNULL(desc);
-  string data;
+  std::string data;
   if (!ReadNextFrameBinary(&data)) {
     LOG(ERROR) << "Could not read from file.";
     return false;
@@ -311,7 +311,7 @@ template <class T> void write(std::ostringstream& stream, const T& t) {
 void StripToEssentials(const SegmentationDesc& desc,
                        bool save_vectorization,
                        bool save_shape_moments,
-                       string* binary_rep) {
+                       std::string* binary_rep) {
   std::ostringstream seg_data;
 
   int frame_width = desc.frame_width();
@@ -437,7 +437,7 @@ void StripToEssentials(const SegmentationDesc& desc,
   }
 
   seg_data.flush();
-  *binary_rep = string(seg_data.str());
+  *binary_rep = std::string(seg_data.str());
 }
 
 }  // namespace segmentation.

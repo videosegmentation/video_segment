@@ -44,12 +44,12 @@ std::string StringPrintf(const char* format, ...) {
   va_end(args);
 
   if (len > kBufferLength) {
-    char big_buffer[len];
+    std::unique_ptr<char[]> big_buffer(new char[len]);
     va_list args;
     va_start (args, format);
-    vsnprintf(big_buffer, len, format, args);
+    vsnprintf(big_buffer.get(), len, format, args);
     va_end(args);
-    return std::string(big_buffer);
+    return std::string(big_buffer.get());
   }
 
   return std::string(buffer);

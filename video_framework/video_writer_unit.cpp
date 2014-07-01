@@ -138,7 +138,7 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
 
   // Set standard parameters.
   codec_context_ = video_stream_->codec;
-  const string file_ending = video_file_.substr(video_file_.size() - 3);
+  const std::string file_ending = video_file_.substr(video_file_.size() - 3);
   if (file_ending == "mp4" || file_ending == "mov") {
     codec_context_->codec_id = CODEC_ID_H264;
   } else {
@@ -153,7 +153,7 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
 
   LOG(INFO) << "Encoding with " << options_.fps << " fps.";
   codec_context_->time_base = av_d2q(1.0 / options_.fps, 1000);
-  
+
   LOG(INFO) << "time base : " << codec_context_->time_base.num
             << " / " << codec_context_->time_base.den;
 

@@ -262,7 +262,7 @@ bool VideoUnit::Seek(int64_t seek_time) {
   return changed_pos;
 }
 
-int VideoUnit::FindStreamIdx(const string& stream_name, const StreamSet* set) {
+int VideoUnit::FindStreamIdx(const std::string& stream_name, const StreamSet* set) {
   for (StreamSet::const_iterator i = set->begin(); i != set->end(); ++i) {
     if ((*i)->stream_name() == stream_name) {
       return i - set->begin();
@@ -328,7 +328,7 @@ bool VideoUnit::OpenStreamsImpl(StreamSet* set, const VideoUnit* sender) {
 
   // Check for duplicate names (will break FindStreamIdx).
   for (int i = prev_stream_sz; i < stream_sz_; ++i) {
-    const string curr_stream_name = (*set)[i]->stream_name();
+    const std::string curr_stream_name = (*set)[i]->stream_name();
     if (FindStreamIdx(curr_stream_name, set) < i) {
       LOG(ERROR) << "Duplicate stream found: " << curr_stream_name;
       return false;
