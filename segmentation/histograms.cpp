@@ -430,7 +430,6 @@ float ColorHistogram::JSDivergence(const ColorHistogram& rhs) const {
 
 
 float ColorHistogram::L2Dist(const ColorHistogram& rhs) const {
-  double sum = 0;
   return std::sqrt(GenericDistance(rhs, [](float a, float b) -> float {
     const float diff = a - b;
     return diff * diff;
