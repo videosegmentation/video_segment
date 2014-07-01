@@ -582,6 +582,8 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
 
     Rasterization3D& raster = *ri.raster;
 
+    // Determine if for any frame rasterization is disconnected.
+    
     for (const auto& raster_slice : raster) {
       std::vector<Rasterization> components;
       ConnectedComponents(*raster_slice.second, N4_CONNECT, &components);
@@ -594,6 +596,8 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
           ShapeMomentsFromRasterization(components[l], &moment);
           GetShapeDescriptorFromShapeMoment(moment, &shapes[l]);
         }
+
+        // Shape descriptor based criteria here.
       }
     }
   }

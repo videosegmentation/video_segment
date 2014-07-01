@@ -198,7 +198,6 @@ bool DenseFlowUnit::OpenStreams(StreamSet* set) {
 
   int frame_width = vid_stream.frame_width();
   int frame_height = vid_stream.frame_height();
-  int pixel_format = vid_stream.pixel_format();
 
   prev_img_.reset(new cv::Mat(frame_height, frame_width, CV_8U));
 
@@ -258,7 +257,6 @@ DenseFlowUnit::DenseFlowUnit(const DenseFlowOptions& options) : options_(options
 void DenseFlowUnit::ProcessFrame(FrameSetPtr input, list<FrameSetPtr>* output) {
   // Get raw video frame data.
   const VideoFrame* frame = input->at(video_stream_idx_)->AsPtr<VideoFrame>();
-  const uint8_t* vid_data = frame->data();
 
   int width = frame->width();
   int height = frame->height();
