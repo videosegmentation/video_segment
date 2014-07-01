@@ -236,11 +236,11 @@ public:
       : DataStream(&typeid(VideoStream), stream_name),
         frame_width_(width),
         frame_height_(height),
-        original_width_(width),
-        original_height_(height),
         width_step_(width_step),
         fps_(fps),
-        pixel_format_(pixel_format) {
+        pixel_format_(pixel_format),
+        original_width_(width),
+        original_height_(height) {
   }
 
   int frame_width() const { return frame_width_; }
