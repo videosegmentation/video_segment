@@ -206,7 +206,6 @@ void GetParentMap(int level,
   }
 
   // Fill each region.
-  const auto& regions = seg.region();
   for(const auto& region : seg.region()) {
     int parent_id = GetParentId(region.id(), 0, level, seg_hier);
     (*parent_map)[parent_id].push_back(&region);
@@ -1040,7 +1039,7 @@ void RasterVectorization(const Vectorization& vec,
                          const VectorMesh& mesh,
                          int frame_height,
                          Rasterization* raster) {
-  DCHECK_NOTNULL(raster);
+  DCHECK(raster != nullptr);
   raster->Clear();
 
   // Create an edge entry for each polyon line.
