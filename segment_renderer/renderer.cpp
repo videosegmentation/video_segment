@@ -277,6 +277,7 @@ int main(int argc, char** argv) {
       curr_frame->MatView(&frame_view);
     } else {
       frame_view.create(frame_height, frame_width, CV_8UC3);
+      frame_view.setTo(0);
     }
 
     if (project_regions.empty()) {
