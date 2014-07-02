@@ -76,7 +76,7 @@ struct RegionSegmentationOptions {
   bool use_appearance = true;
   bool use_flow = true;
   bool use_size_penalizer = true;
-  
+
   // If set computes vectorization for each unit.
   bool compute_vectorization = true;
 };
@@ -84,6 +84,46 @@ struct RegionSegmentationOptions {
 class Segmentation;
 
 // Default region segmentation implementation using appearance and flow.
+// // Usage example:
+//
+// RegionSegmentation region_segmentation(RegionSegmentationOptions(), 640, 360);
+// int num_frames =  // Initialize with number of frames.
+// for (int k = 0; k < num_frames; ++k) {
+//   cv::Mat image_frame(360, 640, CV_8UC3);  // Initialized from somewhere.
+//   SegmentationDesc over_segmentation;     // Initialized from DenseSegmentation result.
+//   std::vector<cv::Mat> features = {image_frame};
+//   bool is_last_frame = (k + 1 == num_frames);
+//   std::vector<std::unique_ptr<SegmentationDesc>> results;
+//   if (region_segmentation.ProcessFrame(is_last_frame,
+//                                       &over_segmentation,
+//                                       &features,
+//                                       &results)) {
+//     // Process results.
+//   }
+// }
+//
+///////////////////////
+//
+// // Usage example for a single frame with over and region segmentation:
+//
+// DenseSegmentation dense_segmentation(DenseSegmentationOptions(), 640, 360);
+// RegionSegmentation region_segmentation(RegionSegmentationOptions(), 640, 360);
+// cv::Mat image_frame(360, 640, CV_8UC3);   // initialized from somewhere.
+// 
+// std::vector<cv::Mat> features = {image_frame};
+// std::vector<std::unique_ptr<SegmentationDesc>> overseg_results;
+// dense_segmentation.ProcessFrame(true, &features, nullptr, &overseg_results);
+// CHECK_EQ(1, overseg_results.size());
+//
+// const SegmentationDesc& overseg_result = *overseg_results[0];
+// std::vector<std::unique_ptr<SegmentationDesc>> region_results;
+// region_segmentation.ProcessFrame(true, 
+//                                  &overseg_result,
+//                                  &features,
+//                                  &region_results);
+// CHECK_EQ(1, region_results.size());
+// const SegmentationDesc& region_result = *region_results[0];
+//
 class RegionSegmentation {
  public:
   RegionSegmentation(const RegionSegmentationOptions& options,
@@ -95,7 +135,7 @@ class RegionSegmentation {
 
   // Process the next frame (pass next frame's segmentation and features)
   // and outputs results (if available) in results. Returns number of segmentations
-  // in results.
+  // in results. In default implementation only feature is CV_8UC3 image frame.
   // If only results are requested pass nullptr to features and segmentation.
   // Optionally pass dense flow (as 2 channel (x,y) float image to connect voxels
   // along flow.

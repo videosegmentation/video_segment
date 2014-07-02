@@ -93,6 +93,19 @@ struct DenseSegmentationOptions {
 
 class Segmentation;
 
+// Usage example:
+// DenseSegmentation dense_segmentation(DenseSegmentationOptions(), 640, 360);
+// int num_frames =  // initialize with number of frames.
+// for (int k = 0; k < num_frames; ++k) {
+//   cv::Mat image_frame(360, 640, CV_8UC3);  // initialized from somewhere.
+//   std::vector<cv::Mat> features = {image_frame};
+//   bool is_last_frame = (k + 1 == num_frames);
+//   std::vector<std::unique_ptr<SegmentationDesc>> results;
+//   // For flow pass pointer to CV_32FC2 cv::Mat instead of nullptr.
+//   if (dense_segmentation.ProcessFrame(is_last_frame, &features, nullptr, &results)) {
+//     // Process results.
+//   }
+// }
 class DenseSegmentation : public DenseSegGraphCreatorInterface {
  public:
   DenseSegmentation(const DenseSegmentationOptions& options,
@@ -104,7 +117,7 @@ class DenseSegmentation : public DenseSegGraphCreatorInterface {
 
   // Process the next frame (pass next frame's features via features)
   // and outputs results (if available) in results. Returns number of segmentations
-  // in results.
+  // in results. In default implementation only feature is CV_8UC3 image frame.
   // If only results are requested pass nullptr to features.
   // Optionally pass dense flow (as 2 channel (x,y) float image to connect voxels
   // along flow.
