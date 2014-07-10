@@ -136,12 +136,17 @@ void GetChildrenIds(int region_id,
 // deviation in the corresponding direction.
 struct ShapeDescriptor {
   cv::Point2f center;
+  
   // Magnitude of major and minor axis.
   float mag_major = 0;
   float mag_minor = 0;
+
   // Direction of major and minor axis (normalized).
   cv::Point2f dir_major = cv::Point2f(1.0f, 0.0f);
   cv::Point2f dir_minor = cv::Point2f(0.0f, 1.0f);
+
+  // Size in pixels.
+  int size = 0;
 };
 
 // Return value indicates if reasonable shape descriptor could be computed.
@@ -161,6 +166,17 @@ bool GetShapeDescriptorFromRegions(const std::vector<const Region2D*>& regions,
 
 bool GetShapeDescriptorFromRegion(const Region2D& r,
                                   ShapeDescriptor* shape_desc);
+
+// Create a rotated rectangle from the shape descriptor (capturing 90% of all pixels 
+// for both direction, i.e. major and minor). Specify an additional border (or zero
+// if not desired). Result is returned as the 4 corners of the rectangle.
+void ShapeDescriptorBox(const ShapeDescriptor& shape,
+                        float border,
+                        std::vector<cv::Point2f>* coords);;
+
+// Tests if two shape descriptor boxes intersect.
+bool ShapeDescriptorBoxesIntersect(const std::vector<cv::Point2f>& lhs,
+                                   const std::vector<cv::Point2f>& rhs);
 
 // Renders the shape descriptor of a joint set of regions to output.
 // If label is set, label will be printed instead of center cross.

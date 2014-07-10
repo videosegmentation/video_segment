@@ -332,7 +332,7 @@ void DenseSegmentation::ChunkBoundaryOutput(
 void DenseSegmentation::SegmentAndOutputChunk(
     bool flush, std::vector<std::unique_ptr<SegmentationDesc>>* results) {
   // Compute resolution dependent min region size.
-  seg_->RunOverSegmentation();
+  seg_->RunOverSegmentation(flow_buffer_.empty() ? nullptr : &flow_buffer_);
 
   const int overlap_start = feature_buffer_.size() - (flush ? 0 : overlap_frames_);
 

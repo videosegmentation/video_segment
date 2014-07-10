@@ -142,10 +142,15 @@ class DenseSegGraphInterface {
 
   // After segmentation: Assigns region ids and creates corresponding rasterization
   // for each region.
+  // Optionally performs a set of post-processing steps.
+  // Pass optional flow in case enforce_spatial_connectedness is set to determine
+  // accurately region tubes from components.
   virtual void ObtainResults(RegionInfoList* region_list,
                              RegionInfoPtrMap* map,
+                             const std::vector<cv::Mat>* flows,
                              bool remove_thin_structure,
-                             bool enforce_n4_connections) = 0;
+                             bool enforce_n4_connections,
+                             bool enforce_spatial_connectedness) = 0;
 
 
   // After obtain results: Determines neighboring information.

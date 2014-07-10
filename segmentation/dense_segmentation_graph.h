@@ -140,8 +140,10 @@ public:
   // Traverses regions and fills their rasterization as well as assigns id.
   virtual void ObtainResults(RegionInfoList* region_list,
                              RegionInfoPtrMap* map,
+                             const std::vector<cv::Mat>* flows,                           
                              bool remove_thin_structure,
-                             bool enforce_n4_connections);
+                             bool enforce_n4_connections,
+                             bool enforce_spatial_connectedness);
 
  protected:
   // Forward functions called after undoing type erasure via AbstractPixelDistance.
@@ -265,6 +267,7 @@ protected:
   void EnforceSpatialConnectedness(
         RegionInfoList* region_list,
         RegionInfoPtrMap* region_map,
+        const std::vector<cv::Mat>* flows,                           
         std::unordered_map<int, int>* size_adjust_map);
 
   // Used to add constrained nodes.
@@ -466,11 +469,18 @@ template<class DistanceTraits, class DescriptorTraits>
 void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
     ObtainResults(RegionInfoList* region_list,
                   RegionInfoPtrMap* region_map,
+                  const std::vector<cv::Mat>* flows,                           
                   bool remove_thin_structure,
-                  bool enforce_n4_connections) {
+                  bool enforce_n4_connections,
+                  bool enforce_spatial_connectedness) {
   DCHECK(this->CheckForIsolatedRegions());
 
-  // this->FlattenUnionFind(true);
+  if (enforce_spatial_connectedness) {
+    this->FlattenUnionFind(true);
+    if (flows) {
+      CHECK_EQ(num_frames_, flows->size()) << "Specify one flow field per frame.";
+    }
+  }
 
   // Flag boundary with -1.
   region_ids_.row(0).setTo(-1);
@@ -549,8 +559,9 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
     }
   }  // end image traversal.
 
-  // Enforce spatial connectedness.
-  // EnforceSpatialConnectedness(region_list, region_map, &size_adjust_map);
+  if (enforce_spatial_connectedness) {
+    EnforceSpatialConnectedness(region_list, region_map, flows, &size_adjust_map);
+  }
 
   // Adjust sizes.
   for (const auto& map_adjust_entry : size_adjust_map) {
@@ -567,40 +578,354 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
   }
 }
 
+// Captures information for one spatially connected tube in at a specific frame.
+struct TubeSlice;
+typedef std::vector<TubeSlice> Tube3D;
+
+struct TubeSlice {
+  int frame = -1;
+  Rasterization raster;
+  ShapeDescriptor shape;
+
+  TubeSlice() = default;
+  TubeSlice(const TubeSlice&) = default;
+  TubeSlice& operator=(const TubeSlice&) = default;
+
+  TubeSlice(TubeSlice&& rhs) : frame(rhs.frame), shape(rhs.shape) {
+    raster.Swap(&rhs.raster);
+  }
+
+  // Finds the corresponding tube in the previous frame - 1. Optionally uses optical
+  // flow information if supplied.
+  // Returns pair (previous index, distance to previous index).
+  std::pair<int, float>
+  FindPreviousTube(const std::vector<Tube3D>& slices,
+                   int frame,
+                   const cv::Mat* flow) const {
+    // Find closest prev centroid.
+    cv::Point2f prev_center = shape.center;
+    if (flow) {
+      DCHECK(prev_center.x >= 0 && prev_center.x < flow->cols);
+      DCHECK(prev_center.y >= 0 && prev_center.y < flow->rows);
+      const float* flow_ptr = flow->ptr<float>(prev_center.y) + 2 * (int)prev_center.x;
+      prev_center += cv::Point2f(flow_ptr[0], flow_ptr[1]);
+    }
+
+    float closest_dist = std::numeric_limits<float>::max();
+    float closest_idx = -1;
+    for (int k = 0; k < slices.size(); ++k) {
+      if (slices[k].empty() || slices[k].back().frame >= frame) {
+        // Got already used by another matching tube.
+        continue;
+      }
+      const cv::Point2f diff = slices[k].back().shape.center - prev_center;
+      const float dist = hypot(diff.y, diff.x);
+      if (dist < closest_dist) {
+        closest_dist = dist;
+        closest_idx = k;
+      }
+    }
+    return std::make_pair(closest_idx, closest_dist);
+  }
+
+  void MergeFrom(const TubeSlice& other) {
+    CHECK_EQ(frame, other.frame);
+    MergeRasterization(raster, other.raster, &raster);
+    ComputeShapeDescriptor();
+  }
+
+  void ComputeShapeDescriptor() {
+    ShapeMoments moment;
+    ShapeMomentsFromRasterization(raster, &moment);
+    GetShapeDescriptorFromShapeMoment(moment, &shape);
+  }
+};
+
+// Returns average area of a slice across time.
+float AverageTubeSliceSize(const Tube3D& ts);
+
+// Merges lhs + rhs into result. Does not allow for inplace operation.
+void MergeTube3D(const Tube3D& lhs, const Tube3D& rhs, Tube3D* result);
+
+// Returns true if tubes are neighboring in time, and matching slices are of similiar
+// area and share same centroid.
+bool AreTubesTemporalNeighbors(const Tube3D& lhs, const Tube3D& rhs);
+
+// Returns average tube distance (of centroids) between lhs and rhs.
+float AverageTubeDistance(const Tube3D& lhs, const Tube3D& rhs);
+
+// Returns fraction (in [0, 1]) for which lhs and rhs intersect.
+float Tube3DIntersection(const Tube3D& lhs, const Tube3D& rhs);
+
+// Returns index of closest tube in vectors tubes, -1 if tubes is empty. Specify index
+// to skip in tubes via ignore_index.
+int GetClosestTube3D(const Tube3D& tube,
+                     const std::vector<Tube3D>& tubes,
+                     int ignore_index = -1);
+
 template<class DistanceTraits, class DescriptorTraits>
 void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
     EnforceSpatialConnectedness(
         RegionInfoList* region_list,
         RegionInfoPtrMap* region_map,
+        const std::vector<cv::Mat>* flows,                           
         std::unordered_map<int, int>* size_adjust_map) {
+
   const int num_regions = region_list->size();
-  for (int k = 0; k < num_regions; ++k) {
-    RegionInformation& ri = *(*region_list)[k];
+  for (int r = 0; r < num_regions; ++r) {
+    RegionInformation& ri = *(*region_list)[r];
     if (ri.raster == nullptr) {
       continue;
     }
 
     Rasterization3D& raster = *ri.raster;
 
+    // Split the spatio-temporal rasterization into connected tubes.
+    std::vector<Tube3D> result_tubes;
+
+    // Set of active tubes, that are currently considered.
+    std::vector<Tube3D> active_tubes;
+
+    const float inv_frame_diam = 1.0f / hypot(frame_width_, frame_height_);
+      
     // Determine if for any frame rasterization is disconnected.
-    
     for (const auto& raster_slice : raster) {
+      const int frame = raster_slice.first;
       std::vector<Rasterization> components;
       ConnectedComponents(*raster_slice.second, N4_CONNECT, &components);
 
-      if (components.size() > 1) {
-        // Disconnected. Determine by how much.
-        std::vector<ShapeDescriptor> shapes(components.size());
-        for (int l = 0; l < components.size(); ++l) {
-          ShapeMoments moment;
-          ShapeMomentsFromRasterization(components[l], &moment);
-          GetShapeDescriptorFromShapeMoment(moment, &shapes[l]);
+      // Create one tube slice for each component.
+      std::vector<TubeSlice> slices;
+      slices.reserve(components.size());
+
+      for (auto& comp_raster : components) {
+        TubeSlice slice;
+        slice.frame = frame;
+        slice.raster.Swap(&comp_raster);
+        slice.ComputeShapeDescriptor();
+        slices.push_back(std::move(slice));
+      }
+
+      // Ensure no-one is using components anymore.
+      components.clear();
+
+      if (active_tubes.empty()) {
+        // Initialize a new one frame Tube3D from each slice.
+        for (auto& slice : slices) {
+          active_tubes.push_back(Tube3D{std::move(slice)});
+        }
+      } else if (active_tubes.size() != slices.size()) {
+        // TODO(grundman): what happens if split / merge occur at the same frame?
+        // Number of components changed.
+        // TODO(grundman): Region splits into two equal sized regions?
+        std::vector<Tube3D> new_active_tubes;
+        
+        // Find which slices have a corrsponding slice and connect.
+        // Indicates which slices have been used.
+        std::vector<int> used_indices(active_tubes.size(), 0);
+        for (auto& slice : slices) {
+          const auto match = slice.FindPreviousTube(active_tubes, frame,
+                                                    flows ? &flows->at(frame) : nullptr);
+
+          const int prev_idx = match.first;
+          if (prev_idx < 0) {
+            // No corresponding tube found, start new one.
+            new_active_tubes.push_back(Tube3D{std::move(slice)});
+            continue;
+          }
+
+          const float diff_dist = match.second;
+          const float diff_area =
+            std::abs(active_tubes[prev_idx].back().shape.size - slice.shape.size);
+
+          if (diff_area < 0.5f * slice.shape.size &&
+              diff_dist * inv_frame_diam < 0.04f) {
+            // Found matching tube, continue.
+            DCHECK_EQ(used_indices[prev_idx], 0);
+            ++used_indices[prev_idx];
+            active_tubes[prev_idx].push_back(std::move(slice));
+
+            new_active_tubes.push_back(Tube3D());
+            new_active_tubes.back().swap(active_tubes[prev_idx]);
+          } else {
+            // No corresponding tube found, start new one.
+            new_active_tubes.push_back(Tube3D{std::move(slice)});
+          }
         }
 
-        // Shape descriptor based criteria here.
+        // Copy all previous active tubes that are not continued to the result.
+        for(int k = 0; k < active_tubes.size(); ++k) {
+          if (used_indices[k] == 0) {
+            result_tubes.push_back(std::move(active_tubes[k]));
+          }
+        }
+ 
+        // Replace with new set.
+        new_active_tubes.swap(active_tubes);
+      } else {
+        // Un-changed number of components.
+        if (slices.size() == 1) {
+          DCHECK_EQ(1, active_tubes.size());
+          active_tubes[0].push_back(std::move(slices[0]));
+        } else {
+          // Find corrsponding slice and connect.
+          std::vector<int> used_indices(active_tubes.size(), 0);
+          for (auto& slice : slices) {
+            const auto match = 
+                slice.FindPreviousTube(active_tubes, frame,
+                                       flows ? &flows->at(frame) : nullptr);
+            const int prev_idx = match.first;
+            // Always should have a match.
+            DCHECK_GE(prev_idx, 0);
+
+            // Check that distance between centroids is small.
+            DCHECK_LT(match.first * inv_frame_diam, 0.04f);
+            DCHECK_EQ(used_indices[prev_idx], 0);
+
+            ++used_indices[prev_idx];
+            active_tubes[prev_idx].push_back(std::move(slice));
+          }
+        }
+      }
+    }  // end raster slice processing.
+
+    // Push remaining active tubes to results.
+    for(auto& slice : active_tubes) {
+      result_tubes.push_back(std::move(slice));
+    }
+
+    if (result_tubes.size() <= 1) {
+      continue;
+    }
+
+    // Post-processing: Merge tubes of small size and close distance in space
+    //                  and time.
+    auto merge_with_closest_tube =
+      [&result_tubes](int k) -> bool {
+      int idx = GetClosestTube3D(result_tubes[k], result_tubes, k);
+      if (idx < 0) {
+        return false;
+      }
+       
+      Tube3D merged;
+      MergeTube3D(result_tubes[idx], result_tubes[k], &merged);
+      result_tubes[idx].swap(merged);
+      result_tubes.erase(result_tubes.begin() + k);
+      return true;
+    };
+
+    // Merge tubes that are small, or close to each other.
+    for (int k = 0; k < result_tubes.size();  /* advanced below */ ) {
+      bool merge = AverageTubeSliceSize(result_tubes[k]) < 20;
+      if (!merge) {
+        // Is tube close to any other tube?
+        for (int l = 0; l < result_tubes.size(); ++l) {
+          if (l == k) {
+            continue;
+          }
+          if (Tube3DIntersection(result_tubes[k], result_tubes[l]) > 0.8) {
+            merge = true;
+            break;
+          }
+        }
+      }
+
+      if (merge &&
+          merge_with_closest_tube(k)) {
+        // Nothing to do on successful merge.
+      } else {
+        // Advance.
+        ++k;
       }
     }
-  }
+
+    // Merge tubes that are temporal neighbors (and of compatible size / position).
+    for (int k = 0; k < result_tubes.size();  /* advanced below */ ) {
+      bool is_merged = false;
+      for (int l = 0; l < result_tubes.size(); ++l) {
+        if (l == k) {
+          continue;
+        }
+        if (AreTubesTemporalNeighbors(result_tubes[k], result_tubes[l])) {
+          Tube3D merged;
+          MergeTube3D(result_tubes[k], result_tubes[l], &merged);
+          result_tubes[l].swap(merged);
+          result_tubes.erase(result_tubes.begin() + k);
+          is_merged = true;
+          // Only perform one merge per Tube (if both ends are mergeable, we will
+          // visit the other corresponding end later).
+          LOG(INFO) << "\n\n\nMERGED TEMP NEIGHBORS.";
+          break;
+        }
+      }
+      if (!is_merged) {
+        ++k;
+      }
+    }
+
+    // Largest / Longest tube keeps id, rest is assigned a new id.
+    // Determine largest/longest tube.
+    int tube_to_keep = -1;
+    int tube_to_keep_score = 0;
+    std::vector<float> tube_areas(result_tubes.size());
+    for (int k = 0; k < result_tubes.size(); ++k) {
+      // Compute tube area and length.
+      int length = 0;
+      float area = 0;
+      for (const auto& slice : result_tubes[k]) {
+        area += slice.shape.size;
+        ++length;
+      }
+      tube_areas[k] = area;
+
+      const float tube_score = area;
+      if (tube_score > tube_to_keep_score) {
+        tube_to_keep_score = tube_score;
+        tube_to_keep = k;
+      }
+    }
+
+    // Re-assign ids.
+    for (int k = 0; k < result_tubes.size(); ++k) {
+      int first_idx = result_tubes[k][0].frame * frame_width_ * frame_height_;
+      const auto& first_scanline = result_tubes[k][0].raster.scan_inter(0);
+      first_idx += first_scanline.y() * frame_width_ + first_scanline.left_x();
+     
+      typedef typename FastSegmentationGraph<DescriptorTraits>::Region Region;
+      Region* rep = this->GetRegion(first_idx);
+      if (k != tube_to_keep) {
+        (*size_adjust_map)[rep->my_id] -= tube_areas[k];
+
+        // Create new region.
+        this->regions_.push_back(Region(this->regions_.size(),
+                                        tube_areas[k],
+                                        -1));    // unconstrained.
+        rep = &this->regions_.back();
+        const int region_id = rep->my_id;
+      
+        // Label all nodes with new id.
+        for (const auto& slice : result_tubes[k]) {
+          const int base_idx = slice.frame * frame_width_ * frame_height_;
+          for (const auto& scan_inter : slice.raster.scan_inter()) {
+            const int row_idx = base_idx + scan_inter.y() * frame_width_;
+            for (int x = scan_inter.left_x(); x <= scan_inter.right_x(); ++x) {
+              this->regions_[row_idx + x].my_id = region_id;
+            }
+          }
+        }
+      }
+
+      // Create RegionInformation and reset rasterization.
+      RegionInformation* ri = this->GetCreateRegionInformation(*rep, false,
+                                                               region_list, region_map);
+      ri->raster.reset(new Rasterization3D);
+      for (auto& slice : result_tubes[k]) {
+        std::shared_ptr<Rasterization> new_raster(new Rasterization());
+        new_raster->Swap(&slice.raster);
+        ri->raster->push_back(std::make_pair(slice.frame, new_raster));
+      }
+    }
+  } // end regions.
 }
 
 template<class DistanceTraits, class DescriptorTraits>

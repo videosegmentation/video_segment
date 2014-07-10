@@ -268,7 +268,7 @@ void Segmentation::PullCounterpartSegmentationResult(const Segmentation& prev_se
   is_constrained_hierarchical_segmentation_ = true;
 }
 
-void Segmentation::RunOverSegmentation() {
+void Segmentation::RunOverSegmentation(const std::vector<cv::Mat>* flows) {
   std::unique_ptr<RegionInfoList> region_list(new RegionInfoList());
 
   CHECK(dense_seg_graph_ != nullptr) << "Call InitializeOverSegmentation first.";
@@ -288,8 +288,10 @@ void Segmentation::RunOverSegmentation() {
   dense_seg_graph_->ObtainResults(
       region_list.get(),
       &map,
+      flows,
       options_.thin_structure_suppression,
-      options_.enforce_n4_connectivity);
+      options_.enforce_n4_connectivity,
+      options_.enforce_spatial_connectedness);
 
   dense_seg_graph_->DetermineNeighborIds(region_list.get(), &map);
 

@@ -270,6 +270,7 @@ bool GetShapeDescriptorFromShapeMoments(const vector<const ShapeMoments*>& momen
   mixed_yy *= inv_area_sum;
 
   shape_desc->center = cv::Point2f(mixed_x, mixed_y);
+  shape_desc->size = area_sum;
 
   if (area_sum < 10) {
     return false;
@@ -298,11 +299,18 @@ bool GetShapeDescriptorFromShapeMoments(const vector<const ShapeMoments*>& momen
 
   cv::Point2f ev_1(1.0f, 0.0f);
   cv::Point2f ev_2(0.0f, 1.0f);
-  if (fabs(det) > 1e-6f) {
-    ev_1 = cv::Point2f(e_1 - var_yy, var_xy);
-    ev_2 = cv::Point2f(e_2 - var_yy, var_xy);
-    ev_1 *= 1.0f / (cv::norm(ev_1));
-    ev_2 *= 1.0f / (cv::norm(ev_2));
+ 
+  cv::Point2f v_1 = cv::Point2f(e_1 - var_yy, var_xy);
+  cv::Point2f v_2 = cv::Point2f(e_2 - var_yy, var_xy);
+
+  const float v_1_norm = hypot(v_1.y, v_1.x);
+  const float v_2_norm = hypot(v_2.y, v_2.x);
+
+  // Eigenvector direction is only reliable when eigenvalues are substantially different
+  // (otherwise circular moment).
+  if (v_1_norm > 1e-6f && v_2_norm > 1e-6f && discriminant > 0.1) {
+    ev_1 = v_1 * (1.0f / v_1_norm);
+    ev_2 = v_2 * (1.0f / v_2_norm);
   }
 
   float e_1_sigma = sqrt(fabs(e_1));
@@ -311,6 +319,13 @@ bool GetShapeDescriptorFromShapeMoments(const vector<const ShapeMoments*>& momen
   if (e_1_sigma < e_2_sigma) {
     std::swap(e_1_sigma, e_2_sigma);
     std::swap(ev_1, ev_2);
+  }
+
+  // Always create right hand system.
+  cv::Point2f ev_1_normal(-ev_1.y, ev_1.x);
+  if (ev_2.dot(ev_1_normal) < 0) {
+    // Change to opposite direction.
+    ev_2 = -ev_2;
   }
 
   shape_desc->center = cv::Point2f(mixed_x, mixed_y);
@@ -343,6 +358,54 @@ bool GetShapeDescriptorFromRegions(const vector<const Region2D*>& regions,
   return GetShapeDescriptorFromShapeMoments(moments, shape_desc);
 }
 
+
+void ShapeDescriptorBox(const ShapeDescriptor& shape,
+                        float border,
+                        std::vector<cv::Point2f>* coords) {
+  CHECK_NOTNULL(coords);
+  const cv::Point2f major = shape.dir_major * (shape.mag_major * 1.65f + border);
+  const cv::Point2f minor = shape.dir_minor * (shape.mag_minor * 1.65f + border);
+  const cv::Point2f center = shape.center;
+
+  *coords = std::vector<cv::Point2f>{
+    center - major + minor,
+    center - major - minor,
+    center + major - minor,
+    center + major + minor,
+  };
+}
+
+bool ShapeDescriptorBoxesIntersect(
+    const std::vector<cv::Point2f>& lhs,
+    const std::vector<cv::Point2f>& rhs) {
+  DCHECK_EQ(4, lhs.size());
+  DCHECK_EQ(4, rhs.size());
+
+  // Test for line segment intersections.
+  // Geometric Tools for Computer Graphics, pp. 241
+  for (int k = 0; k < 4; ++k) {
+    const cv::Point2d lhs_d = lhs[(k + 1) % 4] - lhs[k];
+    for (int l = 0; l < 4; ++l) {
+      const cv::Point2d rhs_d = rhs[(l + 1) % 4] - rhs[l];
+      const cv::Point2d delta = rhs[l] - lhs[k];
+      const double kross = lhs_d.x * rhs_d.y - lhs_d.y * rhs_d.x;
+      if (fabs(kross) < 1e-6) {
+        // Lines are parallel, ignore for this case.
+        continue;
+      }
+      const float inv_kross = 1.0f / kross;
+      const double t = (delta.x * rhs_d.y - delta.y * rhs_d.x) * inv_kross;
+      const double s = (delta.x * lhs_d.y - delta.y * lhs_d.x) * inv_kross;
+      if (t > -1e-6f && t < 1.0f + 1e-6f &&
+          s > -1e-6f && s < 1.0f + 1e-6f) {
+        // Intersection found.
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 void RenderShapeDescriptor(const vector<int>& overseg_region_ids,
                            const SegmentationDesc& desc,
@@ -378,20 +441,48 @@ void RenderShapeDescriptor(const vector<int>& overseg_region_ids,
 
   // Determine angle.
   const float angle = atan2(shape_desc.dir_major.y, shape_desc.dir_major.x);
-  cv::ellipse(*output,
-            shape_desc.center,
-            cv::Size(shape_desc.mag_major, shape_desc.mag_minor),
-            angle / M_PI * 180.0f,
-            0,
-            360,
-            solid_white);
-}
 
+  // Draw ellipse capturing 90% of the pixels in each dimension.
+  cv::ellipse(*output,
+              shape_desc.center,
+              cv::Size(shape_desc.mag_major * 1.96f, shape_desc.mag_minor * 1.96f),
+              angle / M_PI * 180.0f,
+              0,
+              360,
+              solid_white);
+
+
+/*
+ * Shape Descriptor box visualization + intersection test.
+  std::vector<cv::Point2f> corners;
+  ShapeDescriptorBox(shape_desc, 10, &corners);
+
+  bool intersect = false;
+  for (const auto& region : desc.region()) {
+    if (region.id() != overseg_region_ids[0]) {
+      ShapeDescriptor sd;
+      GetShapeDescriptorFromRegion(region, &sd);
+      std::vector<cv::Point2f> c;
+      ShapeDescriptorBox(sd, 10, &c);
+      if (ShapeDescriptorBoxesIntersect(corners, c)) {
+        intersect = true;
+      }
+
+    }
+  }
+
+  cv::Scalar color(intersect ? 0 : 255, intersect ? 0 : 255, 255);
+
+  for (int k = 0; k < 4; ++k) {
+    cv::line(*output, corners[k], corners[(k + 1) % 4], color);
+  }
+  */
+}
 
 void MergeRasterization(const Rasterization& lhs,
                         const Rasterization& rhs,
-                        Rasterization* merged) {
-  CHECK_NOTNULL(merged);
+                        Rasterization* merged_out) {
+  CHECK_NOTNULL(merged_out);
 
   auto lhs_scan = lhs.scan_inter().begin();
   auto rhs_scan = rhs.scan_inter().begin();
@@ -401,15 +492,18 @@ void MergeRasterization(const Rasterization& lhs,
 
   vector<int> interval_offsets;
 
+  // For inplace operation.
+  Rasterization merged;
+
   // Traverse scanlines in lockstep.
   while (lhs_scan != lhs_end || rhs_scan != rhs_end) {
     const int lhs_y = (lhs_scan == lhs_end ? 1 << 30 : lhs_scan->y());
     const int rhs_y = (rhs_scan == rhs_end ? 1 << 30 : rhs_scan->y());
 
     if (lhs_y < rhs_y) {
-      merged->add_scan_inter()->CopyFrom(*lhs_scan++);
+      merged.add_scan_inter()->CopyFrom(*lhs_scan++);
     } else if (rhs_y < lhs_y) {
-      merged->add_scan_inter()->CopyFrom(*rhs_scan++);
+      merged.add_scan_inter()->CopyFrom(*rhs_scan++);
     } else {
       // y-coords are equal.
       DCHECK_EQ(lhs_y, rhs_y);
@@ -445,7 +539,7 @@ void MergeRasterization(const Rasterization& lhs,
       while (k < sz_k) {
         // Last interval -> insert and break.
         if (k + 2 == sz_k) {
-          ScanInterval* scan_inter = merged->add_scan_inter();
+          ScanInterval* scan_inter = merged.add_scan_inter();
           scan_inter->set_y(lhs_y);
           scan_inter->set_left_x(interval_offsets[l]);
           scan_inter->set_right_x(interval_offsets[k + 1]);
@@ -455,7 +549,7 @@ void MergeRasterization(const Rasterization& lhs,
           k += 2;
         } else {
           // Not, connected: Reset and add.
-          ScanInterval* scan_inter = merged->add_scan_inter();
+          ScanInterval* scan_inter = merged.add_scan_inter();
           scan_inter->set_y(lhs_y);
           scan_inter->set_left_x(interval_offsets[l]);
           scan_inter->set_right_x(interval_offsets[k + 1]);
@@ -465,6 +559,8 @@ void MergeRasterization(const Rasterization& lhs,
       }
     }
   }
+
+  merged_out->Swap(&merged);
 }
 
 void MergeRasterizations(const vector<const Rasterization*>& rasters,

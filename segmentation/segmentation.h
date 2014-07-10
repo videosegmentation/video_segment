@@ -62,6 +62,9 @@ struct SegmentationOptions {
 
   // TODO(grundman): Implement connectivity enum for N4 vs N8
 
+  // If set, enforces that spatio-temporal regions are always spatially connected.
+  bool enforce_spatial_connectedness = true;
+
 
   // Hierarchical segmentation options.
   ///////////////////////////////////////
@@ -185,8 +188,9 @@ public:
   // RunHierarchicalSegmenation.
   void PullCounterpartSegmentationResult(const Segmentation& prev_seg);
 
-  // Runs the actual over-segmentation.
-  void RunOverSegmentation();
+  // Runs the actual over-segmentation. Optionally, you can pass the optical flow
+  // connecting pixels across time which are used if enforce_spatial_connectedness is set.
+  void RunOverSegmentation(const std::vector<cv::Mat>* flows);
 
   // This requires an external segmentation to be supplied via AddOverSegmentation and
   // InitializeBaseHierarchyLevel.
