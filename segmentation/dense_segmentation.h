@@ -81,7 +81,7 @@ struct DenseSegmentationOptions {
   bool enforce_n4_connectivity = true;
 
   // If set, enforces that spatio-temporal regions are always spatially connected.
-  bool enforce_spatial_connectedness = false;
+  bool enforce_spatial_connectedness = true;
 
   // Color distance for appearance descriptor.
   enum ColorDistance {
