@@ -274,6 +274,7 @@ void DenseSegmentation::GetSegmentationOptions(SegmentationOptions* options) con
   options->two_stage_segmentation = options_.two_stage_oversegment;
   options->enforce_n4_connectivity = options_.enforce_n4_connectivity;
   options->thin_structure_suppression = options_.thin_structure_suppression;
+  options->enforce_spatial_connectedness = options_.enforce_spatial_connectedness;
   options->compute_vectorization = options_.compute_vectorization;
 }
 

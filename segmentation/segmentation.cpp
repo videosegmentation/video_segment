@@ -108,7 +108,8 @@ void Segmentation::InitializeBaseHierarchyLevel(
     // Not present anymore.
     if (!map_entry.second) {
       DCHECK(region_info_map_.find(map_entry.first) != region_info_map_.end());
-      region_info_map_[map_entry.first]->PopulatingDescriptorsFinished();
+      // TODO(grundman): Compacting seems to happen to early, investigate why.
+      // region_info_map_[map_entry.first]->PopulatingDescriptorsFinished();
       ++num_compacted;
     }
   }
@@ -358,6 +359,8 @@ void Segmentation::RunHierarchicalSegmentation(const RegionDistance& distance,
                               (1.0f / region_infos_[0]->size()));
       region_graph->SegmentGraph(true, cutoff);  // merge rasterization to enable
                                                  // discarding bottom level.
+      // TODO(grundman): Restore N4 connectedness in this case.
+                                                
     } else {
       if (!region_graph->SegmentGraph(false, options_.level_cutoff_fraction)) {
         // If no merge at all, warn and break.
@@ -581,6 +584,10 @@ void Segmentation::AssignUniqueRegionIds(bool use_constrained_ids,
 void Segmentation::DiscardBottomLevel() {
   CHECK(enforce_max_region_num_) << "Requires RunHierarchicalSegmentation to be called"
                                  << " with enforce_max_region_num == true";
+
+  if (region_infos_.size() < 2) {
+    return;
+  }
 
   // Clear children in next level.
   for (auto& region_ptr : *region_infos_[1]) {

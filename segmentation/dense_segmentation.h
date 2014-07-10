@@ -80,6 +80,9 @@ struct DenseSegmentationOptions {
   // Enforces voxel to be spatially (!) connected via N4 neighborhoods.
   bool enforce_n4_connectivity = true;
 
+  // If set, enforces that spatio-temporal regions are always spatially connected.
+  bool enforce_spatial_connectedness = false;
+
   // Color distance for appearance descriptor.
   enum ColorDistance {
     COLOR_DISTANCE_L1 = 0,

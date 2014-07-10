@@ -103,7 +103,6 @@ bool AreTubesTemporalNeighbors(const Tube3D& lhs, const Tube3D& rhs) {
 
   const float size_ratio = std::min(a.size, b.size) * (1.0f / std::max(a.size, b.size));
   const cv::Point2f diff = a.center - b.center;
-  LOG(INFO) << "Neighbors: " << size_ratio << " : " << diff;
   return size_ratio > 0.9 && hypot(diff.y, diff.x) < 20;
 }
 

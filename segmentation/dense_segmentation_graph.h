@@ -714,10 +714,8 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
         for (auto& slice : slices) {
           active_tubes.push_back(Tube3D{std::move(slice)});
         }
-      } else if (active_tubes.size() != slices.size()) {
-        // TODO(grundman): what happens if split / merge occur at the same frame?
-        // Number of components changed.
-        // TODO(grundman): Region splits into two equal sized regions?
+      } else {
+        // Determine new set of active tubes. 
         std::vector<Tube3D> new_active_tubes;
         
         // Find which slices have a corrsponding slice and connect.
@@ -735,14 +733,17 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
           }
 
           const float diff_dist = match.second;
-          const float diff_area =
-            std::abs(active_tubes[prev_idx].back().shape.size - slice.shape.size);
+          const float area_ratio =
+            std::min(active_tubes[prev_idx].back().shape.size, slice.shape.size) /
+            (std::max(active_tubes[prev_idx].back().shape.size, slice.shape.size) + 1e-6);
 
-          if (diff_area < 0.5f * slice.shape.size &&
+
+          if (area_ratio > 0.75 &&
               diff_dist * inv_frame_diam < 0.04f) {
             // Found matching tube, continue.
             DCHECK_EQ(used_indices[prev_idx], 0);
             ++used_indices[prev_idx];
+
             active_tubes[prev_idx].push_back(std::move(slice));
 
             new_active_tubes.push_back(Tube3D());
@@ -762,30 +763,6 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
  
         // Replace with new set.
         new_active_tubes.swap(active_tubes);
-      } else {
-        // Un-changed number of components.
-        if (slices.size() == 1) {
-          DCHECK_EQ(1, active_tubes.size());
-          active_tubes[0].push_back(std::move(slices[0]));
-        } else {
-          // Find corrsponding slice and connect.
-          std::vector<int> used_indices(active_tubes.size(), 0);
-          for (auto& slice : slices) {
-            const auto match = 
-                slice.FindPreviousTube(active_tubes, frame,
-                                       flows ? &flows->at(frame) : nullptr);
-            const int prev_idx = match.first;
-            // Always should have a match.
-            DCHECK_GE(prev_idx, 0);
-
-            // Check that distance between centroids is small.
-            DCHECK_LT(match.first * inv_frame_diam, 0.04f);
-            DCHECK_EQ(used_indices[prev_idx], 0);
-
-            ++used_indices[prev_idx];
-            active_tubes[prev_idx].push_back(std::move(slice));
-          }
-        }
       }
     }  // end raster slice processing.
 
@@ -830,8 +807,7 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
         }
       }
 
-      if (merge &&
-          merge_with_closest_tube(k)) {
+      if (merge && merge_with_closest_tube(k)) {
         // Nothing to do on successful merge.
       } else {
         // Advance.
@@ -854,7 +830,6 @@ void DenseSegmentationGraph<DistanceTraits, DescriptorTraits>::
           is_merged = true;
           // Only perform one merge per Tube (if both ends are mergeable, we will
           // visit the other corresponding end later).
-          LOG(INFO) << "\n\n\nMERGED TEMP NEIGHBORS.";
           break;
         }
       }

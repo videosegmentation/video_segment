@@ -45,7 +45,7 @@ struct RegionSegmentationOptions {
 
   // Maximum number of regions. It is guaranteed that the first level of
   // the hierarchical segmentation has at most max_region_num regions.
-  int max_region_num = 2000;
+  int max_region_num = 10000;
 
   // Number of regions is reduced by approximately
   // 1.0f - level_cutoff_fraction at each level.

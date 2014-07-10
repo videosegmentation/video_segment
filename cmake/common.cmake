@@ -35,8 +35,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Common flags for all projects.
 if (UNIX)
   set(CMAKE_CXX_FLAGS "-D__STDC_CONSTANT_MACROS")
-  # set(CMAKE_BUILD_TYPE Release)
-  set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_BUILD_TYPE Release)
+  # set(CMAKE_BUILD_TYPE Debug)
 
   # Parallelization.
   if (NOT APPLE)

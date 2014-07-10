@@ -479,7 +479,6 @@ float FlowDescriptor::RegionDistance(const RegionDescriptor& rhs_uncast) const {
     DCHECK_GE(rhs_idx, 0);
     if (flow_histograms_[lhs_idx] == nullptr ||
         rhs.flow_histograms_[rhs_idx] == nullptr) {
-      LOG(WARNING) << "Empty flow histogram found.";
       continue;
     }
 

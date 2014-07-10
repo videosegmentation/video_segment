@@ -285,8 +285,10 @@ bool GetShapeDescriptorFromShapeMoments(const vector<const ShapeMoments*>& momen
   const float trace = var_xx + var_yy;
   const float det = var_xx * var_yy - var_xy * var_xy;
 
-  const float discriminant = 0.25 * trace * trace - det;
-  CHECK_GE(discriminant, 0);
+  float discriminant = 0.25 * trace * trace - det;
+  DCHECK_GE(discriminant, -1e-6f);
+  discriminant = std::max(0.0f, discriminant);
+
   const float sqrt_disc = sqrt(discriminant);
   const float e_1 = trace * 0.5 - sqrt_disc;
   const float e_2 = trace * 0.5 + sqrt_disc;
@@ -508,11 +510,12 @@ void MergeRasterization(const Rasterization& lhs,
       // y-coords are equal.
       DCHECK_EQ(lhs_y, rhs_y);
 
-      // Collect all intervals in this scanline order by lhs x coord.
+      // Collect all intervals in this scanline, order by lhs x coord.
       interval_offsets.clear();
       // Set to true if corresponding iterator points still to same y scanline.
       bool left_cond, right_cond;
-      while ( (left_cond = (lhs_scan != lhs_end && lhs_scan->y() == lhs_y)) ||
+      // Note: Prevent short circuit of default or.
+      while ( (left_cond = (lhs_scan != lhs_end && lhs_scan->y() == lhs_y)) |
               (right_cond = (rhs_scan != rhs_end && rhs_scan->y() == rhs_y)) ) {
         // Smaller x coordinate comes first.
         const int lhs_x = left_cond ? lhs_scan->left_x()
@@ -560,6 +563,9 @@ void MergeRasterization(const Rasterization& lhs,
     }
   }
 
+  DCHECK(std::is_sorted(merged.scan_inter().begin(),
+                        merged.scan_inter().end(),
+                        ScanIntervalComparator()));
   merged_out->Swap(&merged);
 }
 

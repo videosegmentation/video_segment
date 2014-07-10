@@ -136,6 +136,10 @@ void BoundaryComputation::ComputeBoundary(
 
   // Split each region into connected components.
   for (const auto& region : seg.region()) {
+    DCHECK(std::is_sorted(region.raster().scan_inter().begin(),
+                          region.raster().scan_inter().end(),
+                          ScanIntervalComparator()));
+
     std::vector<Rasterization> components;
     ConnectedComponents(region.raster(), N8_CONNECT, &components);
 
