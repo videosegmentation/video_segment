@@ -7,12 +7,15 @@ www.videosegmentation.com
 
 To build you need the following build dependencies:
 - [Boost](http://www.boost.org/)
-- [FFMPEG](https://www.ffmpeg.org/)
+- [FFMPEG](https://www.ffmpeg.org/) - Works with 2.2.3*.
 - [Google protobuffer](https://code.google.com/p/protobuf/)
 - [Google logging](https://code.google.com/p/google-glog/)
 - [Google gflags](https://code.google.com/p/gflags/)
-- [OpenCV](http://opencv.org/)
+- [OpenCV](http://opencv.org/) - Works with 2.4.7*.
 - [Jsoncpp](https://github.com/open-source-parsers/jsoncpp) (only needed by segment_util).
+
+*We haven't tested it on earlier versions of ffmpeg / opencv yet. Feel free to
+try and let us know.
 
 We have put together preliminary commands to build and run seg_tree_sample on
 a fresh installation of Ubuntu 14.04 LTS. [You may see those here](https://docs.google.com/document/d/1idKVuSn-8Muhx4bIk5peXzaaYmDgK8bDgw4mgMn8gUY/edit?usp=sharing).
