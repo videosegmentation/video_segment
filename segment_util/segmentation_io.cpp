@@ -324,7 +324,7 @@ void StripToEssentials(const SegmentationDesc& desc,
     CHECK(desc.has_vector_mesh());
     int num_points = desc.vector_mesh().coord_size();
     CHECK_LT(num_points, std::numeric_limits<short>::max())
-      << "Overlflow, too many points for vectorization format!!!";
+      << "Overflow, too many points for vectorization format.";
 
     LOG(INFO) << "Number of points: " << num_points;
 
