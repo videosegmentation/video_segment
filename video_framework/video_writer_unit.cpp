@@ -169,7 +169,6 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
   }
 
   if (codec_context_->codec_id == CODEC_ID_H264) {
-    codec_context_->pix_fmt = AV_PIX_FMT_YUV420P;
     // H264 settings.
     codec_context_->coder_type = FF_CODER_TYPE_AC;
     codec_context_->flags |= CODEC_FLAG_LOOP_FILTER | CODEC_FLAG_GLOBAL_HEADER;
