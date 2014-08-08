@@ -106,6 +106,7 @@ ColorHistogramIndexLUTFactory ColorHistogramIndexLUTFactory::instance_;
 ColorHistogram::ColorHistogram(int lum_bins, int color_bins, bool sparse)
   : lum_bins_(lum_bins),
     color_bins_(color_bins),
+    sq_color_bins_(color_bins * color_bins),
     total_bins_(lum_bins * color_bins * color_bins),
     is_sparse_(sparse) {
   if (sparse) {
@@ -128,9 +129,7 @@ ColorHistogram ColorHistogram::EmptyCopy() const {
 void ColorHistogram::AddPixel(const uint8_t* pixel) {
   DCHECK(!is_normalized_) << "Cannot add to histogram after normalization.";
   // Compute 3D bin position and increment.
-  const int bin = ((int)pixel[0] * lum_bins_ / 256) * color_bins_ * color_bins_ +
-                  ((int)pixel[1] * color_bins_ / 256) * color_bins_ +
-                  ((int)pixel[2] * color_bins_ / 256);
+  const int bin = PixelValueToBin(pixel);
   if (is_sparse_) {
     ++sparse_bins_[bin];
   } else {
@@ -167,7 +166,7 @@ void ColorHistogram::AddValueInterpolated(float x_bin,
 
   if (is_sparse_) {
     for (int x = 0; x < 2; ++x) {
-      const int slice_bin = int_x_bins[x] * color_bins_ * color_bins_;
+      const int slice_bin = int_x_bins[x] * sq_color_bins_;
       for (int y = 0; y < 2; ++y) {
         const int row_bin = slice_bin + int_y_bins[y] * color_bins_;
         for (int z = 0; z < 2; ++z) {
@@ -179,7 +178,7 @@ void ColorHistogram::AddValueInterpolated(float x_bin,
     }
   } else {
     for (int x = 0; x < 2; ++x) {
-      const int slice_bin = int_x_bins[x] * color_bins_ * color_bins_;
+      const int slice_bin = int_x_bins[x] * sq_color_bins_;
       for (int y = 0; y < 2; ++y) {
         const int row_bin = slice_bin + int_y_bins[y] * color_bins_;
         for (int z = 0; z < 2; ++z) {
@@ -195,9 +194,9 @@ void ColorHistogram::AddValueInterpolated(float x_bin,
 }
 
 void ColorHistogram::AddPixelInterpolated(const uint8_t* pixel, float weight) {
-  AddValueInterpolated((float)pixel[0] / 255.f * (lum_bins_ - 1),
-                       (float)pixel[1] / 255.f * (color_bins_ - 1),
-                       (float)pixel[2] / 255.f * (color_bins_ - 1),
+  AddValueInterpolated((float)pixel[0] * (1.0f / 255.f) * (lum_bins_ - 1),
+                       (float)pixel[1] * (1.0f / 255.f) * (color_bins_ - 1),
+                       (float)pixel[2] * (1.0f / 255.f) * (color_bins_ - 1),
                        weight);
 }
 
@@ -205,9 +204,9 @@ void ColorHistogram::AddPixelValuesInterpolated(float lum,
                                                 float color_1,
                                                 float color_2,
                                                 float weight) {
-  AddValueInterpolated(lum / 255.f * (lum_bins_ - 1),
-                       color_1 / 255.f * (color_bins_ - 1),
-                       color_2 / 255.f * (color_bins_ - 1),
+  AddValueInterpolated(lum * (1.0f / 255.f) * (lum_bins_ - 1),
+                       color_1 * (1.0f / 255.f) * (color_bins_ - 1),
+                       color_2 * (1.0f / 255.f) * (color_bins_ - 1),
                        weight);
 }
 

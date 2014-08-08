@@ -66,7 +66,7 @@ public:
 
   // Adds pixel with to a single bin (rounding towards zero computation).
   void AddPixel(const uint8_t* pix);
-  void AddPixelInterpolated(const uint8_t* pix, float weight = 1.0f);
+  void AddPixelInterpolated(const uint8_t* pixel, float weight = 1.0f);
 
   // Same as above direct values (within bounds [0, 255], not checked).
   void AddPixelValuesInterpolated(float lum,
@@ -76,6 +76,12 @@ public:
 
   // Generalized version, no bound checking is performed.
   void AddValueInterpolated(float x_bin, float y_bin, float z_bin, float weight);
+
+  // Returns the bin index for a specified pixel (rounding towards zero).
+  inline int PixelValueToBin(const uint8_t* pixel) const;
+ 
+  // Returns value at a specific bin.
+  inline float GetBinValue(int bin) const;
 
   // Non-reversible operation - frees memory.
   void ConvertToSparse();
@@ -139,6 +145,9 @@ private:
 
   const int lum_bins_ = 0;
   const int color_bins_ = 0;
+
+  // Holds color_bins_ * color_bins_.
+  const int sq_color_bins_ = 0;
   const int total_bins_ = 0;
 
   // Total weight sum across all *added* elements.
@@ -196,6 +205,23 @@ private:
 
 // TODO(grundman): We need a true 2D histogram for optical flow here. Would fix that
 // flower garden sequence, heh? use log for magnitude. Check with HOG video paper.
+
+inline int ColorHistogram::PixelValueToBin(const uint8_t* pixel) const {
+  // Shift by 8 == division by 256.
+ return ((int)pixel[0] * lum_bins_ >> 8) * sq_color_bins_ +
+        ((int)pixel[1] * color_bins_ >> 8) * color_bins_ +
+        ((int)pixel[2] * color_bins_ >> 8);
+}
+  
+inline float ColorHistogram::GetBinValue(int bin) const {
+  if (is_sparse_) {
+    DCHECK(sparse_bins_.find(bin) != sparse_bins_.end());
+    return sparse_bins_.find(bin)->second;
+  } else {
+    DCHECK_LT(bin, bins_.size());
+    return bins_[bin];
+  }
+}
 
 }  // namespace segmentation.
 

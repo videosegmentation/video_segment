@@ -1,4 +1,4 @@
-find_package(Boost COMPONENTS filesystem system program_options thread regex REQUIRED)
+find_package(Boost COMPONENTS system thread REQUIRED)
 find_package(FFMPEG REQUIRED)
 find_package(GLog REQUIRED)
 find_package(OpenCV2 REQUIRED)
