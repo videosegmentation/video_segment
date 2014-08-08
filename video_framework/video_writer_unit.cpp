@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 #include <libavutil/mathematics.h>
+#include <libavutil/opt.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libswscale/swscale.h>
@@ -168,10 +169,11 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
   }
 
   if (codec_context_->codec_id == CODEC_ID_H264) {
+    codec_context_->pix_fmt = AV_PIX_FMT_YUV420P;
     // H264 settings.
     codec_context_->coder_type = FF_CODER_TYPE_AC;
     codec_context_->flags |= CODEC_FLAG_LOOP_FILTER | CODEC_FLAG_GLOBAL_HEADER;
-    codec_context_->profile=FF_PROFILE_H264_BASELINE;
+    codec_context_->profile = FF_PROFILE_H264_BASELINE;
     codec_context_->scenechange_threshold = 40;
     codec_context_->gop_size = 10;
     codec_context_->max_b_frames = 0;
@@ -184,8 +186,10 @@ bool VideoWriterUnit::OpenStreams(StreamSet* set) {
     codec_context_->qcompress = 0.6;
     codec_context_->keyint_min = 10;
     codec_context_->trellis = 0;
-    codec_context_->level = 13;
+    codec_context_->level = 30;
     codec_context_->refs = 1;
+    av_opt_set(codec_context_->priv_data, "preset", "slow", 0);
+    av_opt_set(codec_context_->priv_data, "vprofile", "baseline", 0);
   }
 
   // Find and open codec.
@@ -303,6 +307,10 @@ int VideoWriterUnit::EncodeFrame(AVFrame* frame, int* got_frame) {
     packet.pts = av_rescale_q(codec_context_->coded_frame->pts,
                               codec_context_->time_base,
                               video_stream_->time_base);
+  }
+
+  if (codec_context_->coded_frame->key_frame) {
+    packet.flags |= AV_PKT_FLAG_KEY;
   }
 
   packet.stream_index = video_stream_->index;
