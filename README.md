@@ -39,7 +39,7 @@ List of current executables:
 Runs main segmentation algorithm (over segmentation and hierarchical segmentation).
 Example (will create INPUT.mp4.pb segmentation result)
 ```shell
-./seg_tree_sample --input_file=INPUT.mp4 --logging --write-to-file
+./seg_tree_sample --input_file=INPUT.mp4 --logging --write_to_file
 ```
 
 - segment_converter:
