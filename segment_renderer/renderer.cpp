@@ -281,7 +281,7 @@ int main(int argc, char** argv) {
     }
 
     if (project_regions.empty()) {
-      RenderRegionsRandomColor(FLAGS_render_level,
+      RenderRegionsRandomColor(absolute_level,
                                true,     // With boundaries.
                                false,    // No shape moments.
                                segmentation,
